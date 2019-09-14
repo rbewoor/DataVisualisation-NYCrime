@@ -5,6 +5,8 @@ Analysis of NY Crime, Pedestrian and Port Arrivals
 
 
 #################   LOADING THE DATA INTO MONGO DB  ###################
+General way to call the python script for loading the three data sources into each MongoDb collection:
+python <progName> <inputCSVfile> <#nRowsRead> <nRowsSkip> <mongoDbName> <mongoCollectionName> <logFilename>
 #
 ### loading the Crime Data into MongoDb
 
@@ -35,4 +37,6 @@ python dataInsertMongoNYPedestrian5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-Dat
 python dataInsertMongoNYPortsdata5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/PortsDataPrepared-20190906-clean3.csv" -1 0 db1story coll3portsdata LOG_dataInsertMongoNYPortsdata5-loadAll.log
 
 
-#################   LOADING THE DATA INTO MONGO DB  ###################
+#################   RUNNING THE SCRIPT TO ANALYSE DATA  ###################
+
+python analysisDataStory11SHORTLists.py
