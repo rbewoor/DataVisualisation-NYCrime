@@ -1,0 +1,33 @@
+2019-09-10 11:33:12,485 WARNING:
+Completed CLA processing and logging to file: LOG_dataInsertMongoNYPortsdata5-loadAll-again.log
+2019-09-10 11:33:12,489 WARNING:
+Start time: Tue Sep 10 11:33:12 2019
+2019-09-10 11:33:12,489 WARNING:#CLA passed = 7
+2019-09-10 11:33:12,489 WARNING:Argument #0 = dataInsertMongoNYPortsdata5.py
+2019-09-10 11:33:12,489 WARNING:Argument #1 = D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/PortsDataPrepared-20190906-clean3.csv
+2019-09-10 11:33:12,489 WARNING:Argument #2 = -1
+2019-09-10 11:33:12,489 WARNING:Argument #3 = 0
+2019-09-10 11:33:12,489 WARNING:Argument #4 = db2story
+2019-09-10 11:33:12,489 WARNING:Argument #5 = coll23portsdata
+2019-09-10 11:33:12,489 WARNING:Argument #6 = LOG_dataInsertMongoNYPortsdata5-loadAll-again.log
+2019-09-10 11:33:12,490 WARNING:
+Reading CSV based on parameters
+	nRowsRead = -1	nRowsSkip = 0
+2019-09-10 11:33:12,494 WARNING:Found these columns:
+		['portName', 'year', 'month', 'count', 'END']
+
+2019-09-10 11:33:12,499 WARNING:These columns will NOT be loaded:
+		['END']
+
+2019-09-10 11:33:12,500 WARNING:Reading the ENTIRE CSV file into memory.
+2019-09-10 11:33:12,502 WARNING:Finished reading the CSV file into the panda dataframe dfData.
+2019-09-10 11:33:12,527 WARNING:		Db already has 0 records.
+2019-09-10 11:33:12,527 WARNING:		Db already has 0 records.
+2019-09-10 11:33:12,688 WARNING:				Insert Success -- Inserted 396 records.
+2019-09-10 11:33:12,690 WARNING:		Now Db has 396 records.
+2019-09-10 11:33:12,693 WARNING:Insertion into Mongo success, RC=0.
+2019-09-10 11:33:12,694 WARNING:#Count of rows read from input CSV = 0
+2019-09-10 11:33:12,694 WARNING:#Total writes to Mongo = 396
+2019-09-10 11:33:12,694 WARNING:#Total failed writes to output CSV = 0
+2019-09-10 11:33:12,696 WARNING:
+End time of program: Tue Sep 10 11:33:12 2019

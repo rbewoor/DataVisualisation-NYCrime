@@ -1,0 +1,33 @@
+2019-09-10 11:44:42,643 WARNING:
+Completed CLA processing and logging to file: LOG_dataInsertMongoNYCrime5-nr1000k-nsk5000k-again.log
+2019-09-10 11:44:42,643 WARNING:
+Start time: Tue Sep 10 11:44:42 2019
+2019-09-10 11:44:42,644 WARNING:#CLA passed = 7
+2019-09-10 11:44:42,644 WARNING:Argument #0 = dataInsertMongoNYCrime5.py
+2019-09-10 11:44:42,644 WARNING:Argument #1 = D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYPD_Complaint_Data_Historic.csv
+2019-09-10 11:44:42,644 WARNING:Argument #2 = 1000000
+2019-09-10 11:44:42,644 WARNING:Argument #3 = 5000000
+2019-09-10 11:44:42,644 WARNING:Argument #4 = db2story
+2019-09-10 11:44:42,651 WARNING:Argument #5 = coll21nyccrimedata
+2019-09-10 11:44:42,651 WARNING:Argument #6 = LOG_dataInsertMongoNYCrime5-nr1000k-nsk5000k-again.log
+2019-09-10 11:44:42,652 WARNING:
+Reading CSV based on parameters
+	nRowsRead = 1000000	nRowsSkip = 5000000
+2019-09-10 11:44:42,684 WARNING:Found these columns:
+		['CMPLNT_NUM', 'CMPLNT_FR_DT', 'CMPLNT_FR_TM', 'CMPLNT_TO_DT', 'CMPLNT_TO_TM', 'ADDR_PCT_CD', 'RPT_DT', 'KY_CD', 'OFNS_DESC', 'PD_CD', 'PD_DESC', 'CRM_ATPT_CPTD_CD', 'LAW_CAT_CD', 'BORO_NM', 'LOC_OF_OCCUR_DESC', 'PREM_TYP_DESC', 'JURIS_DESC', 'JURISDICTION_CODE', 'PARKS_NM', 'HADEVELOPT', 'HOUSING_PSA', 'X_COORD_CD', 'Y_COORD_CD', 'SUSP_AGE_GROUP', 'SUSP_RACE', 'SUSP_SEX', 'TRANSIT_DISTRICT', 'Latitude', 'Longitude', 'Lat_Lon', 'PATROL_BORO', 'STATION_NAME', 'VIC_AGE_GROUP', 'VIC_RACE', 'VIC_SEX']
+
+2019-09-10 11:44:42,688 WARNING:These columns will NOT be loaded:
+		['Lat_Lon']
+
+2019-09-10 11:44:42,689 WARNING:Reading 1000000 rows from CSV file into memory.
+2019-09-10 11:45:09,213 WARNING:Finished reading the CSV file into the panda dataframe dfData.
+2019-09-10 11:45:36,416 WARNING:		Db already has 5000000 records.
+2019-09-10 11:45:36,417 WARNING:		Db already has 5000000 records.
+2019-09-10 11:46:12,951 WARNING:				Insert Success -- Inserted 1000000 records.
+2019-09-10 11:46:12,953 WARNING:		Now Db has 6000000 records.
+2019-09-10 11:46:13,888 WARNING:Insertion into Mongo success, RC=0.
+2019-09-10 11:46:13,890 WARNING:#Count of rows read from input CSV = 0
+2019-09-10 11:46:13,891 WARNING:#Total writes to Mongo = 1000000
+2019-09-10 11:46:13,894 WARNING:#Total failed writes to output CSV = 0
+2019-09-10 11:46:13,895 WARNING:
+End time of program: Tue Sep 10 11:46:13 2019

@@ -1,0 +1,33 @@
+2019-09-10 11:30:37,257 WARNING:
+Completed CLA processing and logging to file: LOG_dataInsertMongoNYPedestrian5-loadAll-again.log
+2019-09-10 11:30:37,261 WARNING:
+Start time: Tue Sep 10 11:30:37 2019
+2019-09-10 11:30:37,261 WARNING:#CLA passed = 7
+2019-09-10 11:30:37,261 WARNING:Argument #0 = dataInsertMongoNYPedestrian5.py
+2019-09-10 11:30:37,261 WARNING:Argument #1 = D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYCPedestrianDataPrepared-20190909-clean6.csv
+2019-09-10 11:30:37,261 WARNING:Argument #2 = -1
+2019-09-10 11:30:37,261 WARNING:Argument #3 = 0
+2019-09-10 11:30:37,262 WARNING:Argument #4 = db2story
+2019-09-10 11:30:37,262 WARNING:Argument #5 = coll22pedesdata
+2019-09-10 11:30:37,262 WARNING:Argument #6 = LOG_dataInsertMongoNYPedestrian5-loadAll-again.log
+2019-09-10 11:30:37,263 WARNING:
+Reading CSV based on parameters
+	nRowsRead = -1	nRowsSkip = 0
+2019-09-10 11:30:37,334 WARNING:Found these columns:
+		['year', 'month', 'flagWkday1Sat0', 'flagAmPmMd', 'count', 'loc', 'boroughBridgeName', 'flagBroroughBridge', 'onStreet', 'from', 'to', 'END']
+
+2019-09-10 11:30:37,337 WARNING:These columns will NOT be loaded:
+		['END']
+
+2019-09-10 11:30:37,337 WARNING:Reading the ENTIRE CSV file into memory.
+2019-09-10 11:30:37,348 WARNING:Finished reading the CSV file into the panda dataframe dfData.
+2019-09-10 11:30:37,405 WARNING:		Db already has 0 records.
+2019-09-10 11:30:37,406 WARNING:		Db already has 0 records.
+2019-09-10 11:30:37,655 WARNING:				Insert Success -- Inserted 7503 records.
+2019-09-10 11:30:37,657 WARNING:		Now Db has 7503 records.
+2019-09-10 11:30:37,661 WARNING:Insertion into Mongo success, RC=0.
+2019-09-10 11:30:37,662 WARNING:#Count of rows read from input CSV = 0
+2019-09-10 11:30:37,662 WARNING:#Total writes to Mongo = 7503
+2019-09-10 11:30:37,663 WARNING:#Total failed writes to output CSV = 0
+2019-09-10 11:30:37,664 WARNING:
+End time of program: Tue Sep 10 11:30:37 2019
