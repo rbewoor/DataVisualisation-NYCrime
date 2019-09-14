@@ -1,10 +1,11 @@
 # DataVisualisation-NYCrime
 Analysis of NY Crime, Pedestrian and Port Arrivals
 
+Data from three sources is 
 
 
 
-#################   LOADING THE DATA INTO MONGO DB  ###################
+# LOADING THE DATA INTO MONGO DB  ###################
 General way to call the python script for loading the three data sources into each MongoDb collection:
 python <progName> <inputCSVfile> <#nRowsRead> <nRowsSkip> <mongoDbName> <mongoCollectionName> <logFilename>
 #
@@ -37,7 +38,7 @@ loading ALL the data into Mongo 396 data records (11 years x 3 cities per year x
 python dataInsertMongoNYPortsdata5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/PortsDataPrepared-20190906-clean3.csv" -1 0 db1story coll3portsdata LOG_dataInsertMongoNYPortsdata5-loadAll.log
 
 
-#################   RUNNING THE SCRIPT TO ANALYSE DATA  ###################
+# RUNNING THE SCRIPT TO ANALYSE DATA  ###################
 
 python analysisDataStory11SHORTLists.py
 
