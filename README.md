@@ -1,7 +1,18 @@
 # DataVisualisation-NYCrime
 Analysis of NY Crime, Pedestrian and Port Arrivals
 
-Data from three sources is 
+Please refer the report and presentation uploaded in the repo for an overview of the project.
+
+The information from the Pedestrian and Ports data is converted manually into CSV files:
+NYCPedestrianDataPrepared-20190909-clean6.csv,
+NYPD_Complaint_Data_Historic.csv, and
+PortsDataPrepared-20190906-clean3.csv
+
+After loading to MongoDb, the python script "analysisDataStory11SHORTLists.py" is run to create the final output CSV file. Uploaded in the repo as "outCSVFileSHORT-OIRGINAL.csv".
+
+This output CSV file is changed a little before using it for processing by Tableau and R package. The necessary files are also uploaded to this repo:
+File used for R: "RegR-outCSVFileSHORT-NoKY_CD-Sorted.csv"   ,   using the script: "DataStory-R1.R"
+File used for Tableau: "outCSVFileSHORT-NoKY_CD-Sorted.csv"
 
 
 
