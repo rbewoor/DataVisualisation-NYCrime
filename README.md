@@ -17,7 +17,7 @@ File used for Tableau: "outCSVFileSHORT-NoKY_CD-Sorted.csv"
 
 
 # LOADING THE DATA INTO MONGO DB  ###################
-General way to call the python script for loading the three data sources into each MongoDb collection:
+Parameters with which to run the python script for loading the three data sources into each MongoDb collection:
 python <progName> <inputCSVfile> <#nRowsRead> <nRowsSkip> <mongoDbName> <mongoCollectionName> <logFilename>
 #
 # loading the Crime Data into MongoDb
