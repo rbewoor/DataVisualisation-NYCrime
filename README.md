@@ -40,3 +40,5 @@ python dataInsertMongoNYPortsdata5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-Data
 #################   RUNNING THE SCRIPT TO ANALYSE DATA  ###################
 
 python analysisDataStory11SHORTLists.py
+
+after running the above script, the output CSV file should have 110 rows by 449 columns
