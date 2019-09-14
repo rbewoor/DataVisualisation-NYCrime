@@ -1,0 +1,1068 @@
+regression testing
+
+conda install jupyter
+conda install pandas numpy matplotlib seaborn
+pip install sklearn
+
+
+D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/regressionTesting/testDummyData1.csv
+
+
+
+found borough data for maps possibly: https://data.cityofnewyork.us/City-Government/Borough-Boundaries/tqmj-j8zm
+
+
+
+R regression			R regression			R regression			R regression			R regression			R regression			R regression
+
+sumCrimeStreet-Prem61
+sumCrimeHarrassment-Ofns28
+sumCrimeAssault-Ofns8
+sumCrimeDrugsDangerous-Ofns14
+sumCrimeRobbery-Ofns63
+sumCrimeFelony-LawCat1
+sumCrimeMisdemeanor-LawCat1
+sumCrimeMisdemeanor-LawCat2
+sumCrimeViolation-LawCat3
+
+
+RegR-outCSVFileSHORT-NoKY_CD-Sorted.csv
+
+> names(d)
+ [1] "year"                          "month"                         "year.Month"                    "boroName"                     
+ [5] "countPedes"                    "countPortNY"                   "countPortNewark"               "countPortNYnNewark"           
+ [9] "crimeTotal"                    "sumCrimeAssault.Ofns8"         "sumCrimeDrugsDangerous.Ofns14" "sumCrimeHarrassment.Ofns28"   
+[13] "sumCrimeRobbery.Ofns63"        "sumCrimeStreet.Prem61"         "sumCrimeFelony.LawCat1"        "sumCrimeMisdemeanor.LawCat2"  
+[17] "sumCrimeViolation.LawCat3"  
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+"C:\Program Files\MongoDB\Server\4.0\bin\mongod.exe" --dbpath D:\EverythingD\MyMongoDB\Server\4.0\data
+mongod.exe --dbpath D:\EverythingD\MyMongoDB\Server\4.0\data
+make sure to see the line:
+[initandlisten] waiting for connections on port 27107
+Next open a new command prompt to actually start
+"C:\Program Files\MongoDB\Server\4.0\bin\mongo.exe"
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+cleaning up the pedestrian dataset in csv format
+
+clean up dateString			to make the month two digits as 0 padded  i.e.   m/dd/yy  should be mm/dd/yy e.g.    date as 9/20/14   should become    09/20/14
+	find
+\r\n([0-9])/
+	replace with
+\r\n0\1/
+
+
+now for the middle dd  of   mm/dd/yy    i.e.  mm/d/yy  should be mm/dd/yy   e.g.  05/9/15   should become  05/09/15
+	find
+\r\n([0-9][0-9])/([0-9])/
+	replace with
+\r\n\1/0\2/
+
+now for the year part   i.e.  mm/dd/yy should become mm/dd/yyyy    e.g.  09/23/17  should become  09/23/2017
+	find
+\r\n([0-9][0-9])/([0-9][0-9])/([0-9][0-9])\r\n
+	replace with
+\r\n\1/\2/20\3\r\n
+
+finding the missing value entries for date and count
+e.g. 2007,05,1,a,10/05/2007,     has count 7503
+^\d{4},\d{2},\d,[a-z],\d{2}/\d{2}/\d{4},
+
+e.g. 2007,05,1,a,-,              has count 21
+^\d{4},\d{2},\d,[a-z],-,
+to check even further
+^\d{4},\d{2},\d,[a-z],-,-,,,-,\d  which also has count 21
+
+replaced the 21 entries with missing values for the count and the date. Currently the entries look like this
+2008,05,0,m,-,-,,,-,102......
+after replacement it should be like this
+2008,05,0,m,,,,,,102.....
+
+find
+(^\d{4},\d{2},\d,[a-z]),-,-,,,-,(\d)
+replace with
+\1,,,,,,\2
+
+
+
+find last N documents
+db.coll3portsdata.find().skip( db.coll3portsdata.count() - 2 )
+db.coll3portsdata.find().sort({$natural: -1}).limit(2)
+
+db.coll1nyccrimedata.find({"TRANSIT_DISTRICT": {ne: null}}).count()
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+https://stackoverflow.com/questions/57786545/how-to-pass-log-file-name-as-a-command-line-argument-during-execution
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+db.createCollection("testdscollname1")
+db.testdscollname1.find()
+db.testdscollname1.remove({})
+db.testdscollname1.count_documents({})
+
+		copy the database
+db.copyDatabase("db1story","db1COPYstory","127.0.0.1")
+		rename collection		note here namespace  means <database>.<collection>
+{ renameCollection: "<source_namespace>", to: "<target_namespace>", dropTarget: <true|false>  writeConcern: <document> }
+db.adminCommand( { renameCollection: "db1COPYstory.coll1story", to: "db1COPYstory.coll1COPYstory" } )
+
+
+		mongodb -- data types can be accessed using the $type parameter
+https://docs.mongodb.com/manual/reference/operator/query/type/
+
+db.coll1story.find({"CMPLNT_FR_DT": {$type: "string"} } )
+db.coll1story.find({"CMPLNT_FR_DT": {$exists: 1} } )
+
+[db.coll1story.findOne()].forEach( function(my_doc) { for (var key in my_doc) { print(key + ': ' + typeof my_doc[key]) } } )
+
+		convert a data in string format to iso-date format
+		https://docs.mongodb.com/manual/reference/operator/aggregation/dateFromString/
+
+{ $dateFromString: {
+     dateString: <dateStringExpression>,
+     format: <formatStringExpression>,
+     timezone: <tzExpression>,
+     onError: <onErrorExpression>,
+     onNull: <onNullExpression>
+} }
+If unspecified, $dateFromString uses "%Y-%m-%dT%H:%M:%S.%LZ" as the default format.
+
+the current string representation of the fields are
+CMPLNT_FR_DT				05/12/2007
+CMPLNT_FR_TM				22:15:00
+CMPLNT_TO_DT				05/12/2007
+CMPLNT_TO_TM				22:22:00
+RPT_DT						05/12/2007
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+environment setup
+
+conda create -n datastory1 python=3.6
+conda install pandas
+conda install jupyter
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+command line arguments
+python <progName> <inputCSVfile> <#nRowsRead> <nRowsSkip> <mongoDbName> <mongoCollectionName> <logFilename>
+
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYPD_Complaint_Data_Historic-evenmoreTRUNCATED.csv" 10 25 db1test coll1test LOG_dataInsertMongoNYCrime5-test.log
+
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYPD_Complaint_Data_Historic.csv" 2 0 db1story coll1story LOG_dataInsertMongoNYCrime5-test.log
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYPD_Complaint_Data_Historic.csv" 2 2 db1story coll1story LOG_dataInsertMongoNYCrime5-test.log
+
+xxxx
+
+Command to load the first 1 million rows of Crime data into MongoDb
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYPD_Complaint_Data_Historic.csv" 1000000 0 db2story coll21nyccrimedata LOG_dataInsertMongoNYCrime5-nr1000k-nsk0k.log
+
+Command to load the second 1 million rows of Crime data into MongoDb
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYPD_Complaint_Data_Historic.csv" 1000000 1000000 db2story coll21nyccrimedata LOG_dataInsertMongoNYCrime5-nr1000k-nsk1000k.log
+
+Command to load the final set of 1 million rows of Crime data into MongoDb
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYPD_Complaint_Data_Historic.csv" 1000000 5000000 db2story coll21nyccrimedata LOG_dataInsertMongoNYCrime5-nr1000k-nsk5000k.log
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+		loading ALL the data into Mongo -- has total 6500870 data rows  -- done on 20190902
+python dataInsertMongoNYCrime4.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYPD_Complaint_Data_Historic.csv" 1000000 0 db1story coll1story
+temp-nr1000k-nsk0k.json
+LOG_dataInsertMongoNYCrime4-nr1000k-nsk0k.log
+rename "D:\EverythingD\01SRH-BDBA Acads\PythonWD\DataStoryTelling\LOG_dataInsertMongoNYCrime4.log" "LOG_dataInsertMongoNYCrime-nr1000k-nsk0k.log"
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(0).limit(1)
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(0).sort({$natural: -1}).limit(1)
+>
+> db.coll1story.count()
+1000000
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(0).limit(1)
+{ "CMPLNT_NUM" : 659261697 }
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(0).sort({$natural: -1}).limit(1)
+{ "CMPLNT_NUM" : 489454550 }
+>
+>
+
+python dataInsertMongoNYCrime4.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYPD_Complaint_Data_Historic.csv" 1000000 1000000 db1story coll1story
+temp-nr1000k-nsk1000k.json
+LOG_dataInsertMongoNYCrime4-nr1000k-nsk1000k.log
+rename "D:\EverythingD\01SRH-BDBA Acads\PythonWD\DataStoryTelling\LOG_dataInsertMongoNYCrime4.log" "LOG_dataInsertMongoNYCrime4-nr1000k-nsk1000k.log"
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(1000000).limit(1)
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(1000000).sort({$natural: -1}).limit(1)
+>
+> db.coll1story.count()
+2000000
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(1000000).limit(1)
+{ "CMPLNT_NUM" : 200509225 }
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(1000000).sort({$natural: -1}).limit(1)
+{ "CMPLNT_NUM" : 489454550 }
+>
+
+python dataInsertMongoNYCrime4.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYPD_Complaint_Data_Historic.csv" 1000000 2000000 db1story coll1story
+temp-nr1000k-nsk2000k.json
+LOG_dataInsertMongoNYCrime4-nr1000k-nsk2000k.log
+rename "D:\EverythingD\01SRH-BDBA Acads\PythonWD\DataStoryTelling\LOG_dataInsertMongoNYCrime4.log" "LOG_dataInsertMongoNYCrime4-nr1000k-nsk2000k.log"
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(2000000).limit(1)
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(2000000).sort({$natural: -1}).limit(1)
+>
+> db.coll1story.count()
+3000000
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(2000000).limit(1)
+{ "CMPLNT_NUM" : 307416466 }
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(2000000).sort({$natural: -1}).limit(1)
+{ "CMPLNT_NUM" : 489454550 }
+>
+
+python dataInsertMongoNYCrime4.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYPD_Complaint_Data_Historic.csv" 1000000 3000000 db1story coll1story
+temp-nr1000k-nsk3000k.json
+LOG_dataInsertMongoNYCrime4-nr1000k-nsk3000k.log
+rename "D:\EverythingD\01SRH-BDBA Acads\PythonWD\DataStoryTelling\LOG_dataInsertMongoNYCrime4.log" "LOG_dataInsertMongoNYCrime4-nr1000k-nsk3000k.log"
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(3000000).limit(1)
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(3000000).sort({$natural: -1}).limit(1)
+>
+> db.coll1story.count()
+4000000
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(3000000).limit(1)
+{ "CMPLNT_NUM" : 669489817 }
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(3000000).sort({$natural: -1}).limit(1)
+{ "CMPLNT_NUM" : 489454550 }
+>
+
+python dataInsertMongoNYCrime4.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYPD_Complaint_Data_Historic.csv" 1000000 4000000 db1story coll1story
+temp-nr1000k-nsk4000k.json
+LOG_dataInsertMongoNYCrime4-nr1000k-nsk4000k.log
+rename "D:\EverythingD\01SRH-BDBA Acads\PythonWD\DataStoryTelling\LOG_dataInsertMongoNYCrime4.log" "LOG_dataInsertMongoNYCrime4-nr1000k-nsk4000k.log"
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(4000000).limit(1)
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(4000000).sort({$natural: -1}).limit(1)
+>
+> db.coll1story.count()
+5000000
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(4000000).limit(1)
+{ "CMPLNT_NUM" : 671786243 }
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(4000000).sort({$natural: -1}).limit(1)
+{ "CMPLNT_NUM" : 489454550 }
+>
+
+python dataInsertMongoNYCrime4.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYPD_Complaint_Data_Historic.csv" 1000000 5000000 db1story coll1story
+temp-nr1000k-nsk5000k.json
+LOG_dataInsertMongoNYCrime4-nr1000k-nsk5000k.log
+rename "D:\EverythingD\01SRH-BDBA Acads\PythonWD\DataStoryTelling\LOG_dataInsertMongoNYCrime4.log" "LOG_dataInsertMongoNYCrime4-nr1000k-nsk5000k.log"
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(5000000).limit(1)
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(5000000).sort({$natural: -1}).limit(1)
+>
+> db.coll1story.count()
+6000000
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(5000000).limit(1)
+{ "CMPLNT_NUM" : 610921145 }
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(5000000).sort({$natural: -1}).limit(1)
+{ "CMPLNT_NUM" : 489454550 }
+>
+
+python dataInsertMongoNYCrime4.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYPD_Complaint_Data_Historic.csv" 1000000 6000000 db1story coll1story
+temp-nr1000k-nsk6000k.json
+LOG_dataInsertMongoNYCrime4-nr1000k-nsk6000k.log
+rename "D:\EverythingD\01SRH-BDBA Acads\PythonWD\DataStoryTelling\LOG_dataInsertMongoNYCrime4.log" "LOG_dataInsertMongoNYCrime4-nr1000k-nsk6000k.log"
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(6000000).limit(1)
+db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(6000000).sort({$natural: -1}).limit(1)
+>
+> db.coll1story.count()
+6500870
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(6000000).limit(1)
+{ "CMPLNT_NUM" : 788792151 }
+> db.coll1story.find({},{_id:0, CMPLNT_NUM: 1}).pretty().skip(6000000).sort({$natural: -1}).limit(1)
+{ "CMPLNT_NUM" : 538032959 }
+>
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+nRowsRead = -1 and nRowsSkip = 0  to read whole input file
+else, appropriate values for these two.
+
+D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYPD_Complaint_Data_Historic-evenmoreTRUNCATED.csv
+D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/temp.json
+D:/EverythingD/01SRH-BDBA Acads/PythonWD/DataStoryTelling/
+
+counters =                                                                                                                              \
+    {"countRowsReadFromCsvFile": 0, "countMongoWriteSuccess": 0, "countMongoWriteFailed": 0}
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+NYC crime data			has about 6.5 million rows    exactly Found 6500870 total rows in mongo.    The csv file has 6500871 including header row.
+
+NYPD crime data
+CMPLNT_NUM				659261697								Randomly generated persistent ID for each complaint 
+CMPLNT_FR_DT			05/12/2007								Exact date of occurrence for the reported event (or starting date of occurrence, if CMPLNT_TO_DT exists)
+CMPLNT_FR_TM			22:15:00								Exact time of occurrence for the reported event (or starting time of occurrence, if CMPLNT_TO_TM exists)
+CMPLNT_TO_DT			05/12/2007								Ending date of occurrence for the reported event, if exact time of occurrence is unknown
+CMPLNT_TO_TM			22:22:00								Ending time of occurrence for the reported event, if exact time of occurrence is unknown
+ADDR_PCT_CD				109										The precinct in which the incident occurred
+RPT_DT					05/12/2007								Date event was reported to police 
+KY_CD					106										Three digit offense classification code
+OFNS_DESC				FELONY ASSAULT							Description of offense corresponding with key code
+PD_CD					109										Three digit internal classification code (more granular than Key Code)
+PD_DESC					"ASSAULT 2,1,UNCLASSIFIED"				Description of internal classification corresponding with PD code (more granular than Offense Description)
+CRM_ATPT_CPTD_CD		COMPLETED								Indicator of whether crime was successfully completed or attempted, but failed or was interrupted prematurely
+LAW_CAT_CD				FELONY									Level of offense: felony, misdemeanor, violation 
+BORO_NM					QUEENS									The name of the borough in which the incident occurred
+LOC_OF_OCCUR_DESC		INSIDE									Specific location of occurrence in or around the premises; inside, opposite of, front of, rear of
+PREM_TYP_DESC			AR/NIGHT CLUB							Specific description of premises; grocery store, residence, street, etc.
+JURIS_DESC				N.Y. POLICE DEPT
+JURISDICTION_CODE		0
+PARKS_NM				NA										Name of NYC park, playground or greenspace of occurrence, if applicable (state parks are not included)
+HADEVELOPT														Development Level Code
+HOUSING_PSA				NA
+X_COORD_CD				1030368									X-coordinate for New York State Plane Coordinate System, Long Island Zone, NAD 83, units feet (FIPS 3104)
+Y_COORD_CD				214723									Y-coordinate for New York State Plane Coordinate System, Long Island Zone, NAD 83, units feet (FIPS 3104)
+SUSP_AGE_GROUP				
+SUSP_RACE				ASIAN / PACIFIC ISLANDER
+SUSP_SEX				M
+TRANSIT_DISTRICT												Transit district in which the offense occurred.
+Latitude				40.7559295								Midblock Latitude coordinate for Global Coordinate System, WGS 1984, decimal degrees (EPSG 4326) 
+Longitude				-73.83353931							Midblock Longitude coordinate for Global Coordinate System, WGS 1984, decimal degrees (EPSG 4326)
+Lat_Lon				 	"(40.755929496,-73.833539312)"
+PATROL_BORO				PATROL BORO QUEENS NORTH				The name of the patrol borough in which the incident occurred
+STATION_NAME													Transit station name
+VIC_AGE_GROUP			18-24
+VIC_RACE				ASIAN / PACIFIC ISLANDER
+VIC_SEX					M
+
+		entry into mongo looks like this
+> db.coll1nyccrimedata.find({"CMPLNT_NUM" : 659261697}).limit(1).pretty()
+{
+        "_id" : ObjectId("5d6fbbb017e37fe2a8a9ebdd"),
+        "CMPLNT_NUM" : 659261697,
+        "CMPLNT_FR_DT" : "05/12/2007",
+        "CMPLNT_FR_TM" : "22:15:00",
+        "CMPLNT_TO_DT" : "05/12/2007",
+        "CMPLNT_TO_TM" : "22:22:00",
+        "ADDR_PCT_CD" : 109,
+        "RPT_DT" : "05/12/2007",
+        "KY_CD" : 106,
+        "OFNS_DESC" : "FELONY ASSAULT",
+        "PD_CD" : 109,
+        "PD_DESC" : "ASSAULT 2,1,UNCLASSIFIED",
+        "CRM_ATPT_CPTD_CD" : "COMPLETED",
+        "LAW_CAT_CD" : "FELONY",
+        "BORO_NM" : "QUEENS",
+        "LOC_OF_OCCUR_DESC" : "INSIDE",
+        "PREM_TYP_DESC" : "BAR/NIGHT CLUB",
+        "JURIS_DESC" : "N.Y. POLICE DEPT",
+        "JURISDICTION_CODE" : 0,
+        "PARKS_NM" : null,
+        "HADEVELOPT" : null,
+        "HOUSING_PSA" : null,
+        "X_COORD_CD" : 1030368,
+        "Y_COORD_CD" : 214723,
+        "SUSP_AGE_GROUP" : null,
+        "SUSP_RACE" : "ASIAN / PACIFIC ISLANDER",
+        "SUSP_SEX" : "M",
+        "TRANSIT_DISTRICT" : null,
+        "Latitude" : 40.755929496,
+        "Longitude" : -73.833539312,
+        "PATROL_BORO" : "PATROL BORO QUEENS NORTH",
+        "STATION_NAME" : null,
+        "VIC_AGE_GROUP" : "18-24",
+        "VIC_RACE" : "ASIAN / PACIFIC ISLANDER",
+        "VIC_SEX" : "M"
+}
+>
+
+		some random entry
+> db.coll1nyccrimedata.find().skip(1234).limit(1).pretty()
+{
+        "_id" : ObjectId("5d6fbbb017e37fe2a8a9f0af"),
+        "CMPLNT_NUM" : 265008242,
+        "CMPLNT_FR_DT" : "05/11/2007",
+        "CMPLNT_FR_TM" : "00:30:00",
+        "CMPLNT_TO_DT" : "05/11/2007",
+        "CMPLNT_TO_TM" : "16:35:00",
+        "ADDR_PCT_CD" : 105,
+        "RPT_DT" : "05/12/2007",
+        "KY_CD" : 110,
+        "OFNS_DESC" : "GRAND LARCENY OF MOTOR VEHICLE",
+        "PD_CD" : 441,
+        "PD_DESC" : "LARCENY,GRAND OF AUTO",
+        "CRM_ATPT_CPTD_CD" : "COMPLETED",
+        "LAW_CAT_CD" : "FELONY",
+        "BORO_NM" : "QUEENS",
+        "LOC_OF_OCCUR_DESC" : "FRONT OF",
+        "PREM_TYP_DESC" : "STREET",
+        "JURIS_DESC" : "N.Y. POLICE DEPT",
+        "JURISDICTION_CODE" : 0,
+        "PARKS_NM" : null,
+        "HADEVELOPT" : null,
+        "HOUSING_PSA" : null,
+        "X_COORD_CD" : 1055943,
+        "Y_COORD_CD" : 193837,
+        "SUSP_AGE_GROUP" : null,
+        "SUSP_RACE" : null,
+        "SUSP_SEX" : null,
+        "TRANSIT_DISTRICT" : null,
+        "Latitude" : 40.698432373,
+        "Longitude" : -73.741449735,
+        "PATROL_BORO" : "PATROL BORO QUEENS SOUTH",
+        "STATION_NAME" : null,
+        "VIC_AGE_GROUP" : "25-44",
+        "VIC_RACE" : "BLACK",
+        "VIC_SEX" : "F"
+}
+>
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+		additional notes on data analysis using simple mongo shell queries
+"TRANSIT_DISTRICT"  is null for 6356760 entries. Only 144110 has not null values ($eq null   and  $ne null  totals match 6500870 total entries)
+> db.coll1nyccrimedata.find({"TRANSIT_DISTRICT": {$eq: null}}).count()
+6356760
+> db.coll1nyccrimedata.find({"TRANSIT_DISTRICT": {$ne: null}}).count()
+144110
+> db.coll1nyccrimedata.count()
+6500870
+>
+
+"Latitude"  is present for 6483531 entries. Only 17339 entries have null values ($eq null   and  $ne null  totals match 6500870 total entries)
+"Longitude"  is present for 6483531 entries. Only 17339 entries have null values ($eq null   and  $ne null  totals match 6500870 total entries)
+> db.coll1nyccrimedata.find({"Latitude": {$ne: null}}).count()
+6483531
+> db.coll1nyccrimedata.find({"Latitude": {$eq: null}}).count()
+17339
+>
+> db.coll1nyccrimedata.find({"Longitude": {$ne: null}}).count()
+6483531
+> db.coll1nyccrimedata.find({"Longitude": {$eq: null}}).count()
+17339
+>
+Verified that the Latitude and Longitude are present in all cases simultaneously
+> db.coll1nyccrimedata.find({ $and: [ {"Latitude": {$ne: null}} , {"Longitude": {$ne: null}} ] }).count()
+6483531
+> db.coll1nyccrimedata.find({ $and: [ {"Latitude": {$eq: null}} , {"Longitude": {$eq: null}} ] }).count()
+17339
+>
+
+
+
+
+"CMPLNT_FR_DT"  is present for 6483531 entries. Only 17339 entries have null values ($eq null   and  $ne null  totals match 6500870 total entries)
+> db.coll1nyccrimedata.find({"CMPLNT_FR_DT": {$ne: null}}).count()
+6500215
+> db.coll1nyccrimedata.find({"CMPLNT_FR_DT": {$eq: null}}).count()
+655
+
+		checking all non null CMPLNT_FR_DT  are in the format  mm/dd/yyyy
+db.coll1nyccrimedata.find({"CMPLNT_FR_DT": {$regex: /^[\d]{2}[/][\d]{2}[/][\d]{4}$/}}).limit(1)
+> db.coll1nyccrimedata.find({"CMPLNT_FR_DT": {$regex: /^[\d]{2}[/][\d]{2}[/][\d]{4}$/}}).count()
+6500215
+
+		find docs with CMPLNT_FR_DT matching    05/dd/2007
+> db.coll1nyccrimedata.find({"CMPLNT_FR_DT": {$regex: /^05[/][\d]{2}[/]2007$/}}).count()
+47342
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+	distinct values for key code    KY_CD			74 values
+
+db.coll1nyccrimedata.distinct("KY_CD")
+	returned in a long line which I formatted for readability  -- found 74 values
+[ 106, 344, 105, 578, 235, 126, 109, 121, 347, 361, 351, 117, 348, 355, 341, 364, 110, 107, 678, 352, 236, 232, 113, 238, 359, 118, 358, 111, 342, 233, 350, 675, 365, 353, 343, 120, 340, 112, 116, 114, 360, 124, 104, 101, 356, 125, 363, 115, 345, 231, 571, 103, 677, 346, 455, 349, 237, 122, 354, 102, 366, 230, 234, 676, 881, 123, 357, 572, 685, 460, 672, 362, 119, 577 ]
+
+	to find the count of number of distinct values  add  .length in end
+> db.coll1nyccrimedata.distinct("KY_CD").length
+74
+>
+
+	sorted values
+[101, 102, 103, 104, 105, 106, 107, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 230, 231, 232, 233, 234, 235, 236, 237, 238, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 455, 460, 571, 572, 577, 578, 672, 675, 676, 677, 678, 685, 881]
+
+
+
+
+
+
+
+
+	distinct values for key code    OFNS__DESC				71 values
+
+db.coll1nyccrimedata.distinct("OFNS_DESC")
+	returned in a long line which I formatted for readability  -- found 71 values
+[ "FELONY ASSAULT", "ASSAULT 3 & RELATED OFFENSES", "ROBBERY", "HARRASSMENT 2", "DANGEROUS DRUGS", "MISCELLANEOUS PENAL LAW", "GRAND LARCENY", "CRIMINAL MISCHIEF & RELATED OF", "INTOXICATED & IMPAIRED DRIVING", "OFF. AGNST PUB ORD SENSBLTY &", "VEHICLE AND TRAFFIC LAWS", "OFFENSES AGAINST THE PERSON", "PETIT LARCENY", "OTHER STATE LAWS (NON PENAL LA", "GRAND LARCENY OF MOTOR VEHICLE", "BURGLARY", "CRIMINAL TRESPASS", "DANGEROUS WEAPONS", "POSSESSION OF STOLEN PROPERTY", "FORGERY", "FRAUDULENT ACCOSTING", "OFFENSES AGAINST PUBLIC ADMINI", "OFFENSES INVOLVING FRAUD", "PETIT LARCENY OF MOTOR VEHICLE", "SEX CRIMES", "GAMBLING", "ADMINISTRATIVE CODE", "UNAUTHORIZED USE OF A VEHICLE", "OTHER OFFENSES RELATED TO THEF", "CHILD ABANDONMENT/NON SUPPORT", "FRAUDS", "THEFT-FRAUD",
+
+null,
+
+"ARSON", "KIDNAPPING & RELATED OFFENSES", "RAPE", "MURDER & NON-NEGL. MANSLAUGHTER", "PROSTITUTION & RELATED OFFENSES", "NYS LAWS-UNCLASSIFIED FELONY", "OFFENSES AGAINST PUBLIC SAFETY", "OFFENSES RELATED TO CHILDREN", "BURGLAR'S TOOLS", "LOITERING/GAMBLING (CARDS, DIC", "HOMICIDE-NEGLIGENT,UNCLASSIFIE", "OTHER STATE LAWS", "ALCOHOLIC BEVERAGE CONTROL LAW", "UNLAWFUL POSS. WEAP. ON SCHOOL", "DISRUPTION OF A RELIGIOUS SERV", "ESCAPE 3", "ANTICIPATORY OFFENSES", "HOMICIDE-NEGLIGENT-VEHICLE", "THEFT OF SERVICES", "NEW YORK CITY HEALTH CODE", "JOSTLING", "LOITERING FOR DRUG PURPOSES", "ENDAN WELFARE INCOMP", "OTHER TRAFFIC INFRACTION", "ABORTION", "FORTUNE TELLING", "DISORDERLY CONDUCT", "ADMINISTRATIVE CODES", "LOITERING/DEVIATE SEX", "LOITERING", "OFFENSES AGAINST MARRIAGE UNCL", "INTOXICATED/IMPAIRED DRIVING", "UNDER THE INFLUENCE OF DRUGS", "OTHER STATE LAWS (NON PENAL LAW)", "KIDNAPPING", "AGRICULTURE & MRKTS LAW-UNCLASSIFIED", "NYS LAWS-UNCLASSIFIED VIOLATION", "KIDNAPPING AND RELATED OFFENSES" ]
+
+	to find the count of number of distinct values  add  .length in end
+>
+> db.coll1nyccrimedata.distinct("OFNS_DESC").length
+71
+
+
+	sorted values
+['ABORTION', 'ADMINISTRATIVE CODE', 'ADMINISTRATIVE CODES', 'AGRICULTURE & MRKTS LAW-UNCLASSIFIED', 'ALCOHOLIC BEVERAGE CONTROL LAW', 'ANTICIPATORY OFFENSES', 'ARSON', 'ASSAULT 3 & RELATED OFFENSES', "BURGLAR'S TOOLS", 'BURGLARY', 'CHILD ABANDONMENT/NON SUPPORT', 'CRIMINAL MISCHIEF & RELATED OF', 'CRIMINAL TRESPASS', 'DANGEROUS DRUGS', 'DANGEROUS WEAPONS', 'DISORDERLY CONDUCT', 'DISRUPTION OF A RELIGIOUS SERV', 'ENDAN WELFARE INCOMP', 'ESCAPE 3', 'FELONY ASSAULT', 'FORGERY', 'FORTUNE TELLING', 'FRAUDS', 'FRAUDULENT ACCOSTING', 'GAMBLING', 'GRAND LARCENY', 'GRAND LARCENY OF MOTOR VEHICLE', 'HARRASSMENT 2', 'HOMICIDE-NEGLIGENT,UNCLASSIFIE', 'HOMICIDE-NEGLIGENT-VEHICLE', 'INTOXICATED & IMPAIRED DRIVING', 'INTOXICATED/IMPAIRED DRIVING', 'JOSTLING', 'KIDNAPPING', 'KIDNAPPING & RELATED OFFENSES', 'KIDNAPPING AND RELATED OFFENSES', 'LOITERING', 'LOITERING FOR DRUG PURPOSES', 'LOITERING/DEVIATE SEX', 'LOITERING/GAMBLING (CARDS, DIC', 'MISCELLANEOUS PENAL LAW', 'MURDER & NON-NEGL. MANSLAUGHTER', 'NEW YORK CITY HEALTH CODE', 'NYS LAWS-UNCLASSIFIED FELONY', 'NYS LAWS-UNCLASSIFIED VIOLATION', 'OFF. AGNST PUB ORD SENSBLTY &', 'OFFENSES AGAINST MARRIAGE UNCL', 'OFFENSES AGAINST PUBLIC ADMINI', 'OFFENSES AGAINST PUBLIC SAFETY', 'OFFENSES AGAINST THE PERSON', 'OFFENSES INVOLVING FRAUD', 'OFFENSES RELATED TO CHILDREN', 'OTHER OFFENSES RELATED TO THEF', 'OTHER STATE LAWS', 'OTHER STATE LAWS (NON PENAL LA', 'OTHER STATE LAWS (NON PENAL LAW)', 'OTHER TRAFFIC INFRACTION', 'PETIT LARCENY', 'PETIT LARCENY OF MOTOR VEHICLE', 'POSSESSION OF STOLEN PROPERTY', 'PROSTITUTION & RELATED OFFENSES', 'RAPE', 'ROBBERY', 'SEX CRIMES', 'THEFT OF SERVICES', 'THEFT-FRAUD', 'UNAUTHORIZED USE OF A VEHICLE', 'UNDER THE INFLUENCE OF DRUGS', 'UNLAWFUL POSS. WEAP. ON SCHOOL', 'VEHICLE AND TRAFFIC LAWS']
+
+
+
+
+
+
+	distinct values for key code    PD_CD				427 values
+
+db.coll1nyccrimedata.distinct("PD_CD")
+	returned in a long line which I formatted for readability  -- found 427 values
+[ 109, 101, 397, 638, 511, 760, 567, 415, 388, 269, 905, 637, 384, 639, 259, 503, 916, 115, 113, 321, 809, 254, 500, 338, 333, 438, 392, 441, 223, 201, 203, 782, 922, 377, 490, 339, 723, 399, 343, 466, 749, 793, 106, 349, 748, 367, 357, 433, 267, 419, 729, 759, 705, 494, 750, 117, 361, 341, 213, 421, 681, 198, 544, 271, 175, 890, 205, 243, 221, 439, 792, 305, 878, 258, 462, 478, 515, 493, 405, 695, 718, 739, 707, 407, 398, 382, 179, 263, 649, 183, 157, 391, 451, 417, 204, 224, 461, 568, 277,
+
+null,
+
+489, 569, 335, 509, 762, 414, 307, 455, 457, 727, 403, 155, 303, 168, 360, 501, 521, 442, 508, 256, 566, 661, 313, 514, 779, 413, 231, 112, 510, 512, 477, 507, 264, 502, 570, 565, 847, 214, 788, 585, 211, 829, 170, 301, 644, 744, 730, 672, 401, 389, 505, 537, 209, 191, 640, 241, 591, 761, 610, 380, 708, 596, 166, 701, 111, 826, 375, 181, 647, 233, 764, 520, 329, 327, 159, 347, 153, 164, 365, 725, 431, 363, 197, 273, 174, 703, 770, 185, 548, 395, 808, 385, 447, 266, 643, 125, 683, 491, 234, 731, 918, 849, 665, 351, 853, 371, 687, 754, 443, 659, 594, 652, 519, 633, 409, 802, 595, 293, 435, 199, 848, 899, 193, 563, 627, 299, 742, 524, 187, 557, 479, 107, 366, 641, 244, 476, 532, 323, 781, 261, 780, 291, 379, 450, 331, 858, 674, 297, 122, 862, 423, 907, 345, 772, 840, 724, 879, 104, 719, 625, 342, 180, 475, 645, 248, 811, 393, 799, 529, 283, 373, 888, 464, 381, 576, 711, 110, 195, 864, 604, 265, 766, 350, 119, 874, 889, 691, 553, 887, 892, 285, 715, 289, 868, 797, 498, 688, 530, 588, 706, 531, 775, 803, 275, 429, 841, 721, 969, 533, 696, 746, 662, 618, 143, 468, 605, 584, 697, 587, 872, 574, 602, 669, 619, 733, 420, 404, 648, 789, 445, 614, 880, 281, 430, 663, 689, 693, 812, 866, 904, 427, 586, 593, 756, 146, 121, 406, 386, 408, 784, 177, 422, 787, 786, 796, 589, 390, 561, 622, 105, 268, 114, 822, 412, 685, 355, 522, 836, 821, 513, 860, 664, 737, 646, 162, 176, 418, 425, 827, 424, 411, 437, 410, 402, 416, 428, 432, 426, 434, 436, 839, 698, 396, 820, 186, 523, 694, 394, 344, 387, 817, 818, 843, 844, 814, 815, 846, 861, 184, 845, 975, 383, 876, 178, 813, 667, 798, 783, 108, 102, 103, 877, 785, 885, 678, 148, 819 ]
+
+	to find the count of number of distinct values  add  .length in end
+>
+> db.coll1nyccrimedata.distinct("PD_CD").length
+427
+>
+
+
+	sorted values
+[ 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 117, 119, 121, 122, 125, 143, 146, 148, 153, 155, 157, 159, 162, 164, 166, 168, 170, 174, 175, 176, 177, 178, 179, 180, 181, 183, 184, 185, 186, 187, 191, 193, 195, 197, 198, 199, 201, 203, 204, 205, 209, 211, 213, 214, 221, 223, 224, 231, 233, 234, 241, 243, 244, 248, 254, 256, 258, 259, 261, 263, 264, 265, 266, 267, 268, 269, 271, 273, 275, 277, 281, 283, 285, 289, 291, 293, 297, 299, 301, 303, 305, 307, 313, 321, 323, 327, 329, 331, 333, 335, 338, 339, 341, 342, 343, 344, 345, 347, 349, 350, 351, 355, 357, 360, 361, 363, 365, 366, 367, 371, 373, 375, 377, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435, 436, 437, 438, 439, 441, 442, 443, 445, 447, 450, 451, 455, 457, 461, 462, 464, 466, 468, 475, 476, 477, 478, 479, 489, 490, 491, 493, 494, 498, 500, 501, 502, 503, 505, 507, 508, 509, 510, 511, 512, 513, 514, 515, 519, 520, 521, 522, 523, 524, 529, 530, 531, 532, 533, 537, 544, 548, 553, 557, 561, 563, 565, 566, 567, 568, 569, 570, 574, 576, 584, 585, 586, 587, 588, 589, 591, 593, 594, 595, 596, 602, 604, 605, 610, 614, 618, 619, 622, 625, 627, 633, 637, 638, 639, 640, 641, 643, 644, 645, 646, 647, 648, 649, 652, 659, 661, 662, 663, 664, 665, 667, 669, 672, 674, 678, 681, 683, 685, 687, 688, 689, 691, 693, 694, 695, 696, 697, 698, 701, 703, 705, 706, 707, 708, 711, 715, 718, 719, 721, 723, 724, 725, 727, 729, 730, 731, 733, 737, 739, 742, 744, 746, 748, 749, 750, 754, 756, 759, 760, 761, 762, 764, 766, 770, 772, 775, 779, 780, 781, 782, 783, 784, 785, 786, 787, 788, 789, 792, 793, 796, 797, 798, 799, 802, 803, 808, 809, 811, 812, 813, 814, 815, 817, 818, 819, 820, 821, 822, 826, 827, 829, 836, 839, 840, 841, 843, 844, 845, 846, 847, 848, 849, 853, 858, 860, 861, 862, 864, 866, 868, 872, 874, 876, 877, 878, 879, 880, 885, 887, 888, 889, 890, 892, 899, 904, 905, 907, 916, 918, 922, 969, 975 ]
+
+
+
+
+
+
+	distinct values for key code    PD_DESC				415 values
+
+db.coll1nyccrimedata.distinct("PD_DESC")
+	returned in a long line which I formatted for readability  -- found 415 values
+[ "ASSAULT 2,1,UNCLASSIFIED", "ASSAULT 3", "ROBBERY,OPEN AREA UNCLASSIFIED", "HARASSMENT,SUBD 3,4,5", "CONTROLLED SUBSTANCE, POSSESSI", "BRIBERY,PUBLIC ADMINISTRATION", "MARIJUANA, POSSESSION 4 & 5", "LARCENY,GRAND FROM PERSON,PICK", "ROBBERY,RESIDENTIAL COMMON AREA", "MISCHIEF,CRIMINAL,    UNCL 2ND", "INTOXICATED DRIVING,ALCOHOL", "HARASSMENT,SUBD 1,CIVILIAN", "ROBBERY,POCKETBOOK/CARRIED BAG", "AGGRAVATED HARASSMENT 2", "CRIMINAL MISCHIEF,UNCLASSIFIED 4", "CONTROLLED SUBSTANCE,INTENT TO", "LEAVING SCENE-ACCIDENT-PERSONA", "RECKLESS ENDANGERMENT 2", "MENACING,UNCLASSIFIED", "LARCENY,PETIT FROM AUTO", "TAX LAW", "MISCHIEF, CRIMINAL 4, OF MOTOR", "CONTROLLED SUBSTANCE,POSSESS.", "LARCENY,PETIT FROM BUILDING,UN", "LARCENY,PETIT FROM STORE-SHOPL", "LARCENY,GRAND FROM BUILDING (NON-RESIDENCE) UNATTENDED", "ROBBERY,UNLICENSED FOR HIRE VEHICLE", "LARCENY,GRAND OF AUTO", "BURGLARY,RESIDENCE,NIGHT", "TRESPASS 4,CRIMINAL SUB 2", "TRESPASS 3, CRIMINAL", "WEAPONS, POSSESSION, ETC", "TRAFFIC,UNCLASSIFIED MISDEMEAN", "ROBBERY,BODEGA/CONVENIENCE STORE", "STOLEN PROPERTY 3,POSSESSION", "LARCENY,PETIT FROM OPEN AREAS,", "FORGERY,DRIVERS LICENSE", "ROBBERY,COMMERCIAL UNCLASSIFIED", "LARCENY,PETIT OF BICYCLE", "ACCOSTING,FRAUDULENT", "VIOLATION OF ORDER OF PROTECTI", "WEAPONS POSSESSION 3", "ASSAULT POLICE/PEACE OFFICER", "LARCENY,PETIT OF LICENSE PLATE", "CONTEMPT,CRIMINAL", "ROBBERY, CHAIN STORE", "LARCENY,PETIT OF VEHICLE ACCES", "LARCENY,GRAND FROM STORE-SHOPL", "MISCHIEF, CRIMINAL 3 & 2, OF M", "LARCENY,GRAND FROM PERSON,UNCL", "FORGERY,ETC.,UNCLASSIFIED-FELO", "PUBLIC ADMINISTATION,UNCLASS M", "FORGERY,ETC.-MISD.", "STOLEN PROPERTY 2,1,POSSESSION", "RESISTING ARREST", "RECKLESS ENDANGERMENT 1", "ROBBERY,BANK", "LARCENY,PETIT OF AUTO", "BURGLARY,COMMERCIAL,NIGHT", "LARCENY,GRAND FROM VEHICLE/MOTORCYCLE", "CHILD, ENDANGERING WELFARE", "CRIMINAL CONTEMPT 1", "GAMBLING 2,PROMOTING,UNCLASSIF", "TAMPERING 3,2, CRIMINAL", "SEXUAL ABUSE 3,2", "N.Y.C. TRANSIT AUTH. R&R", "TRESPASS 2, CRIMINAL", "BURGLARY,UNCLASSIFIED,NIGHT", "BURGLARY,RESIDENCE,DAY", "LARCENY,GRAND FROM OPEN AREAS, UNATTENDED", "WEAPONS POSSESSION 1 & 2", "LARCENY,PETIT BY CREDIT CARD U", "ADM.CODE,UNCLASSIFIED MISDEMEA", "CRIMINAL MISCHIEF 4TH, GRAFFIT", "UNAUTHORIZED USE VEHICLE 3", "THEFT OF SERVICES, UNCLASSIFIE", "CONTROLLED SUBSTANCE,SALE 3", "STOLEN PROPERTY-MOTOR VEH 2ND,", "LARCENY,GRAND BY THEFT OF CREDIT CARD", "CHILD ABANDONMENT", "FRAUD,UNCLASSIFIED-MISDEMEANOR", "FRAUD,UNCLASSIFIED-FELONY", "IMPERSONATION 2, PUBLIC SERVAN", "LARCENY,GRAND BY DISHONEST EMP", "ROBBERY,PUBLIC PLACE INSIDE", "ROBBERY,NECKCHAIN/JEWELRY", "AGGRAVATED SEXUAL ASBUSE", "ARSON 2,3,4", "FALSE REPORT UNCLASSIFIED", "IMPRISONMENT 1,UNLAWFUL", "RAPE 1", "ROBBERY,LICENSED MEDALLION CAB", "LARCENY,GRAND OF MOTORCYCLE", "LARCENY,GRAND FROM PERSON,PURS", "TRESPASS 1,CRIMINAL", "BURGLARY,RESIDENCE,UNKNOWN TIM", "UNAUTHORIZED USE VEHICLE 2", "MARIJUANA, POSSESSION 1, 2 & 3", "RECKLESS ENDANGERMENT OF PROPE",
+
+null,
+
+"THEFT,RELATED OFFENSES,UNCLASS", "MARIJUANA, SALE 4 & 5", "LARCENY,PETIT FROM TRUCK", "POSSESSION HYPODERMIC INSTRUME", "ESCAPE 2,1", "LARCENY,GRAND PERSON,NECK CHAI", "LARCENY,PETIT BY DISHONEST EMP", "LARCENY,GRAND OF TRUCK", "LARCENY,GRAND OF VEHICULAR/MOTORCYCLE ACCESSORIES", "FORGERY,PRESCRIPTION", "LARCENY,GRAND BY BANK ACCT COMPROMISE-REPRODUCED CHECK", "RAPE 2", "LARCENY,PETIT BY CHECK USE", "SODOMY 1", "ROBBERY,ATM LOCATION", "CONTROLLED SUBSTANCE, SALE 5", "LARCENY, GRAND OF AUTO - ATTEM", "DRUG PARAPHERNALIA,   POSSESSE", "MISCHIEF, CRIMINAL 4, BY FIRE", "MARIJUANA, POSSESSION", "LEWDNESS,PUBLIC", "LARCENY,PETIT BY FALSE PROMISE", "CONTROLLED SUBSTANCE,SALE 2", "PUBLIC ADMINISTRATION,UNCLASSI", "LARCENY,GRAND BY FALSE PROMISE", "BURGLARY,TRUCK DAY", "MENACING 1ST DEGREE (VICT NOT", "CONTROLLED SUBSTANCE, INTENT T", "CONTROLLED SUBSTANCE,SALE 1", "THEFT OF SERVICES- CABLE TV SE", "ARSON, MOTOR VEHICLE 1 2 3 & 4", "MARIJUANA, SALE 1, 2 & 3", "PROSTITUTION, PATRONIZING 4, 3", "NY STATE LAWS,UNCLASSIFIED FEL", "BURGLARY,COMMERCIAL,UNKNOWN TI", "FIREWORKS, SALE", "PROSTITUTION 3,PROMOTING BUSIN", "BURGLARY,COMMERCIAL,DAY", "LABOR LAW,EMPLOYING CHILDREN", "SEXUAL MISCONDUCT,INTERCOURSE", "LARCENY,PETIT BY ACQUIRING LOS", "FALSE REPORT 1,FIRE", "BAIL JUMPING 3", "MANUFACTURE UNAUTHORIZED RECOR", "RIOT 1", "LARCENY,GRAND BY ACQUIRING LOS", "ROBBERY,DWELLING", "GAMBLING 2, PROMOTING, POLICY-", "BURGLARS TOOLS,UNCLASSIFIED", "CUSTODIAL INTERFERENCE 2", "AGGRAVATED HARASSMENT 1", "BURGLARY,UNCLASSIFIED,DAY", "OBSCENITY, PERFORMANCE 3", "BRIBERY, POLICE OFFICER", "LOITERING,GAMBLING,OTHER", "ROBBERY,CAR JACKING", "IMPERSONATION 1, POLICE OFFICE", "OBSCENE MATERIAL - UNDER 17 YE", "SODOMY 2", "BRIBERY,COMMERCIAL", "MENACING,PEACE OFFICER", "GENERAL BUSINESS LAW,TICKET SP", "ROBBERY,PHARMACY", "IMPRISONMENT 2,UNLAWFUL", "FALSE REPORT BOMB", "BURGLARY,TRUCK NIGHT", "BAIL JUMPING 1 & 2", "CONTROLLED SUBSTANCE, SALE 4", "LARCENY,PETIT FROM COIN MACHIN", "LARCENY,PETIT FROM PARKING MET", "RAPE 1,ATTEMPT", "PETIT LARCENY-CHECK FROM MAILB", "RAPE 3", "SODOMY 3", "ROBBERY,LIQUOR STORE", "FORGERY,M.V. REGISTRATION", "LARCENY,GRAND FROM PIER, UNATTENDED", "ROBBERY,BAR/RESTAURANT", "COERCION 1", "TAMPERING 1,CRIMINAL", "SEXUAL MISCONDUCT,DEVIATE", "CHECK,BAD", "COMPUTER UNAUTH. USE/TAMPER", "KIDNAPPING 2", "GAMBLING, DEVICE, POSSESSION", "ROBBERY,ON BUS/ OR BUS DRIVER", "ROBBERY, PAYROLL", "GRAND LARCENY-CHECK FROM MAILB", "MISCHIEF, CRIMINAL 3&2, BY FIR", "ASSEMBLY,UNLAWFUL", "HOMICIDE,NEGLIGENT,UNCLASSIFIE", "CHILD,ALCOHOL SALE TO", "STOLEN PROP-MOTOR VEHICLE 3RD,", "BURGLARY,UNKNOWN TIME", "SALE OF UNAUTHORIZED RECORDING", "RECKLESS DRIVING", "NY STATE LAWS,UNCLASSIFIED VIO", "MAKING TERRORISTIC THREAT", "LARCENY,PETIT OF MOTORCYCLE", "CIGARETTE,NO TAX STAMP,POSSESS", "ROBBERY,CHECK CASHING BUSINESS", "CHILD,OFFENSES AGAINST,UNCLASS", "APPEARANCE TICKET FAIL TO RESP", "LARCENY,GRAND OF BICYCLE", "NUISANCE,CRIMINAL,UNCLASSIFIED", "OBSCENITY 1", "RIOT 2/INCITING", "SALE SCHOOL GROUNDS 4", "EXPOSURE OF A PERSON", "LARCENY,GRAND BY EXTORTION", "ALCOHOLIC BEVERAGE CONTROL LAW", "UNLAWFUL POSS. WEAPON UPON SCH", "CONSPIRACY 2, 1", "LARCENY,GRAND FROM TRUCK, UNATTENDED", "AGGRAVATED CRIMINAL CONTEMPT", "NY STATE LAWS,UNCLASSIFIED MIS", "PARKR&R,UNCLASSIFIED VIOLATION", "CUSTODIAL INTERFERENCE 1", "PROSTITUTION", "DIS. CON.,AGGRAVATED", "FACILITATION 3,2,1, CRIMINAL", "ESCAPE 3", "CONTROLLED SUBSTANCE,POSSESS.-", "KIDNAPPING 1", "GAMBLING 1,PROMOTING,POLICY", "END WELFARE VULNERABLE ELDERLY PERSON", "ROBBERY,BICYCLE", "HEALTHCARE/RENT.REG.", "BURGLARY,UNCLASSIFIED,UNKNOWN", "CREDIT CARD,UNLAWFUL USE OF", "LARCENY,PETIT FROM BOAT", "CRIMINAL DISPOSAL FIREARM 1 &", "ARSON 1", "NUISANCE, CRIMINAL", "CONSPIRACY 4, 3", "ROBBERY,GAS STATION", "LARCENY, GRAND OF MOPED", "LARCENY,PETIT FROM PIER", "IMITATION PISTOL/AIR RIFLE", "EAVESDROPPING", "FACILITATION 4, CRIMINAL", "HOMICIDE, NEGLIGENT, VEHICLE,", "ALCOHOLIC BEVERAGES,PUBLIC CON", "LARCENY,GRAND FROM BOAT, UNATTENDED", "IMPAIRED DRIVING,DRUG", "LARCENY,PETIT OF BOAT", "COMPUTER TAMPER/TRESSPASS", "PUBLIC HEALTH LAW,GLUE,UNLAWFU", "FORGERY-ILLEGAL POSSESSION,VEH", "ADM.CODE,UNCLASSIFIED VIOLATIO", "VEHICULAR ASSAULT (INTOX DRIVE", "DISORDERLY CONDUCT", "LARCENY, PETIT OF AUTO - ATTEM", "COURSE OF SEXUAL CONDUCT AGAIN", "UNAUTH. SALE OF TRANS. SERVICE", "FALSE ALARM FIRE", "RADIO DEVICES,UNLAWFUL POSSESS", "DOG STEALING", "ROBBERY,OF TRUCK DRIVER", "PUBLIC SAFETY,UNCLASSIFIED MIS", "SALES OF PRESCRIPTION", "SOLICITATION 4, CRIMINAL", "ROBBERY,DOCTOR/DENTIST OFFICE", "HEALTH CODE,UNCLASSIFIED MISDE", "JOSTLING", "ROBBERY,HIJACKING", "PROSTITUTION 4,PROMOTING&SECUR", "TAMPERING WITH A WITNESS", "MENACING 1ST DEGREE (VICT PEAC", "COERCION 2", "BUILDING MATERIAL", "LOITERING 1ST DEGREE FOR DRUG", "MISCHIEF 1,CRIMINAL,EXPLOSIVE", "PERJURY 2,1,ETC", "LARCENY, PETIT OF MOPED", "PROMOTING SUICIDE ATTEMPT", "PEDDLING,UNLAWFUL", "HEALTH CODE,VIOLATION", "BIGAMY", "GAMBLING 1,PROMOTING,BOOKMAKIN", "GRAFFITI (ADMINISTRATIVE CODE-", "PARK R&R,GAMBLING", "SOLICITATION 3,2,1, CRIMINAL", "POSSESSION ANTI-SECURITY ITEM", "CONSPIRACY 6, 5", "GYPSY CAB", "WOUNDS,REPORTING OF", "STOLEN PROPERTY 2,POSSESSION B", "INCOMPETENT PERSON,RECKLESSY ENDANGERING", "DRUG, INJECTION OF", "PROSTITUTION 2, UNDER 16", "RECORDS,FALSIFY-TAMPER", "MONEY LAUNDERING 1 & 2", "A.B.C.,FALSE PROOF OF AGE", "POSTING ADVERTISEMENTS", "LARCENY,GRAND FROM COIN MACHIN", "PUBLIC HEALTH LAW,UNCLASSIFIED", "BRIBERY,FRAUD", "TRAFFIC,UNCLASSIFIED INFRACTIO", "GAMBLING 2, PROMOTING, BOOKMAK", "PROMOTING A SEXUAL PERFORMANCE", "PERJURY 3,ETC.", "MATERIAL              OFFENSIV", "LOITERING FOR PROSTITUTION OR", "ABORTION 1", "FORTUNE TELLING", "LOITERING TO PROMOTE PROSTITUT", "PROSTITUTION 3, PROMOTING UNDE", "USE OF A CHILD IN A SEXUAL PER", "PROSTITUTION 2, COMPULSORY", "NOISE,UNECESSARY", "PROSTITUTION,PERMITTING", "LOITERING,DEVIATE SEX", "PRIVACY,OFFENSES AGAINST,UNCLA", "LOITERING,UNCLASSIFIED", "ENTERPRISE CORRUPTION", "LARCENY,GRAND BY OPEN/COMPROMISE CELL PHONE ACCT", "LARCENY,GRAND FROM PERSON,PERSONAL ELECTRONIC DEVICE(SNATCH)", "PLACE FALSE BOMB", "FIREWORKS, POSSESS/USE", "LARCENY,GRAND OF BOAT", "LOITERING,SCHOOL", "POSSES OR CARRY A KNIFE", "SOLICITATION 5,CRIMINAL", "LARCENY,GRAND BY BANK ACCT COMPROMISE-UNCLASSIFIED", "SUPP. ACT TERR 2ND", "MARRIAGE,OFFENSES AGAINST,UNCL", "INCEST", "AGRICULTURE & MARKETS LAW,UNCL", "FIREWORKS", "LARCENY,GRAND FROM PARKING MET", "SEX TRAFFICKING", "OBSCENITY, MATERIAL 3", "ABSCONDING FROM WORK RELEASE 2", "ABORTION 2, 1, SELF", "HOMICIDE,NEGLIGENT,VEHICLE", "LARCENY,GRAND FROM PERSON, BAG OPEN/DIP", "ROBBERY,PERSONAL ELECTRONIC DEVICE", "LARCENY,GRAND FROM PERSON,LUSH WORKER(SLEEPING/UNCON VICTIM)", "WEAPONS,MFR,TRANSPORT,ETC.", "SEXUAL ABUSE", "LARCENY,GRAND BY OPEN CREDIT CARD (NEW ACCT)", "WEAPONS,PROHIBITED USE IMITATI", "WEAPONS,PROHIBITED USE", "PROSTITUTION 1, UNDER 11", "ROBBERY,HOME INVASION", "PROSTITUTION, PATRONIZING 2, 1", "UNDER THE INFLUENCE OF DRUGS", "STRANGULATION 1ST", "CRIMINAL MIS 2 & 3", "OBSTR BREATH/CIRCUL", "EDUCATION LAW", "LARCENY,GRAND FROM RESIDENCE, UNATTENDED", "CHILD,LICENSED PREMISES", "LARCENY,PETIT OF TRUCK", "USE CHILD TO COMMIT CONT SUB OFF", "NAVIGATION LAW", "EDUCATION LAW,UNCLASSIFIED", "POSS METH MANUFACT MATERIAL", "AIR POLLUTION-MOTOR VEH (ADM C", "TERRORISM PROVIDE SUPPORT", "USURY,CRIMINAL", "DISSEMINATING A FALSE SEX OFFEND", "SODOMY,CONSENSUAL", "SEX CRIMES", "LARCENY,GRAND BY ACQUIRING LOST CREDIT CARD", "LARCENY,GRAND BY BANK ACCT COMPROMISE-ATM TRANSACTION", "GENERAL BUSINESS LAW / UNCLASSIFIED", "LARCENY,GRAND BY CREDIT CARD ACCT COMPROMISE-EXISTING ACCT", "LARCENY,GRAND FROM EATERY, UNATTENDED", "LARCENY,GRAND BY FALSE PROMISE-IN PERSON CONTACT", "LARCENY,GRAND FROM RETAIL STORE, UNATTENDED", "LARCENY,GRAND BY FALSE PROMISE-NOT IN PERSON CONTACT", "LARCENY,GRAND FROM NIGHT CLUB, UNATTENDED", "LARCENY,GRAND BY BANK ACCT COMPROMISE-UNAUTHORIZED PURCHASE", "LARCENY,GRAND BY IDENTITY THEFT-UNCLASSIFIED", "LARCENY,GRAND BY BANK ACCT COMPROMISE-TELLER", "LARCENY,GRAND BY OPEN BANK ACCT", "LARCENY,GRAND BY CREDIT CARD COMPROMISE-UNAUTHORIZE PURCHASE", "PUBLIC HEALTH LAW,GLUE,INHALAT", "INCOMPETENT PERSON,KNOWINGLY ENDANGERING", "ROBBERY,BEGIN AS SHOPLIFTING", "EDUCATION LAW, TRUANCY", "LURING A CHILD", "SALE SCHOOL GROUNDS", "ROBBERY,LICENSED FOR HIRE VEHICLE", "PETIT LARCENY OF ANIMAL", "ROBBERY,CLOTHING", "TORTURE/INJURE ANIMAL CRUELTY", "ABANDON ANIMAL", "INAPPROPIATE SHELTER DOG LEFT", "CAUSE SPI/KILL ANIMAL", "ATTEND/SPECTATOR ANIMAL FIGHTING", "NEGLECT/POISON ANIMAL", "CONFINING ANIMAL IN VEHICLE/SHELTER", "AIRPOLLUTION", "LABOR TRAFFICKING", "BREED/TRAIN/HOST ANIMAL FIGHTING", "ENVIRONMENTAL CONTROL BOARD", "ROBBERY,DELIVERY PERSON", "UNLAWFUL SALE SYNTHETIC MARIJUANA", "FAC. SEXUAL OFFENSE W/CONTROLL", "POSSESS PARAPHERNALIA/ANIMAL FIGHTING", "HIND PROSEC. TERR 2", "FIREARMS LICENSING LAWS", "FIREWORKS PREV CONV 5 YEARS", "ASSAULT OTHER PUBLIC SERVICE EMPLOYEE", "ASSAULT SCHOOL SAFETY AGENT", "ASSAULT TRAFFIC AGENT", "UNLAWFUL DISCLOSURE OF AN INTIMATE IMAGE", "WEAPONS DISPOSITION OF", "SMOKING TRANSPORTATION FACILIT", "ANARCHY,CRIMINAL", "ABORTIONAL ARTICLES,ISSUING", "EDUCATION LAW,STREET TRADE" ]
+
+	to find the count of number of distinct values  add  .length in end
+>
+> db.coll1nyccrimedata.distinct("PD_DESC").length
+415
+
+
+	sorted values
+['A.B.C.,FALSE PROOF OF AGE', 'ABANDON ANIMAL', 'ABORTION 1', 'ABORTION 2, 1, SELF', 'ABORTIONAL ARTICLES,ISSUING', 'ABSCONDING FROM WORK RELEASE 2', 'ACCOSTING,FRAUDULENT', 'ADM.CODE,UNCLASSIFIED MISDEMEA', 'ADM.CODE,UNCLASSIFIED VIOLATIO', 'AGGRAVATED CRIMINAL CONTEMPT', 'AGGRAVATED HARASSMENT 1', 'AGGRAVATED HARASSMENT 2', 'AGGRAVATED SEXUAL ASBUSE', 'AGRICULTURE & MARKETS LAW,UNCL', 'AIR POLLUTION-MOTOR VEH (ADM C', 'AIRPOLLUTION', 'ALCOHOLIC BEVERAGE CONTROL LAW', 'ALCOHOLIC BEVERAGES,PUBLIC CON', 'ANARCHY,CRIMINAL', 'APPEARANCE TICKET FAIL TO RESP', 'ARSON 1', 'ARSON 2,3,4', 'ARSON, MOTOR VEHICLE 1 2 3 & 4', 'ASSAULT 2,1,UNCLASSIFIED', 'ASSAULT 3', 'ASSAULT OTHER PUBLIC SERVICE EMPLOYEE', 'ASSAULT POLICE/PEACE OFFICER', 'ASSAULT SCHOOL SAFETY AGENT', 'ASSAULT TRAFFIC AGENT', 'ASSEMBLY,UNLAWFUL', 'ATTEND/SPECTATOR ANIMAL FIGHTING', 'BAIL JUMPING 1 & 2', 'BAIL JUMPING 3', 'BIGAMY', 'BREED/TRAIN/HOST ANIMAL FIGHTING', 'BRIBERY, POLICE OFFICER', 'BRIBERY,COMMERCIAL', 'BRIBERY,FRAUD', 'BRIBERY,PUBLIC ADMINISTRATION', 'BUILDING MATERIAL', 'BURGLARS TOOLS,UNCLASSIFIED', 'BURGLARY,COMMERCIAL,DAY', 'BURGLARY,COMMERCIAL,NIGHT', 'BURGLARY,COMMERCIAL,UNKNOWN TI', 'BURGLARY,RESIDENCE,DAY', 'BURGLARY,RESIDENCE,NIGHT', 'BURGLARY,RESIDENCE,UNKNOWN TIM', 'BURGLARY,TRUCK DAY', 'BURGLARY,TRUCK NIGHT', 'BURGLARY,UNCLASSIFIED,DAY', 'BURGLARY,UNCLASSIFIED,NIGHT', 'BURGLARY,UNCLASSIFIED,UNKNOWN', 'BURGLARY,UNKNOWN TIME', 'CAUSE SPI/KILL ANIMAL', 'CHECK,BAD', 'CHILD ABANDONMENT', 'CHILD, ENDANGERING WELFARE', 'CHILD,ALCOHOL SALE TO', 'CHILD,LICENSED PREMISES', 'CHILD,OFFENSES AGAINST,UNCLASS', 'CIGARETTE,NO TAX STAMP,POSSESS', 'COERCION 1', 'COERCION 2', 'COMPUTER TAMPER/TRESSPASS', 'COMPUTER UNAUTH. USE/TAMPER', 'CONFINING ANIMAL IN VEHICLE/SHELTER', 'CONSPIRACY 2, 1', 'CONSPIRACY 4, 3', 'CONSPIRACY 6, 5', 'CONTEMPT,CRIMINAL', 'CONTROLLED SUBSTANCE, INTENT T', 'CONTROLLED SUBSTANCE, POSSESSI', 'CONTROLLED SUBSTANCE, SALE 4', 'CONTROLLED SUBSTANCE, SALE 5', 'CONTROLLED SUBSTANCE,INTENT TO', 'CONTROLLED SUBSTANCE,POSSESS.', 'CONTROLLED SUBSTANCE,POSSESS.-', 'CONTROLLED SUBSTANCE,SALE 1', 'CONTROLLED SUBSTANCE,SALE 2', 'CONTROLLED SUBSTANCE,SALE 3', 'COURSE OF SEXUAL CONDUCT AGAIN', 'CREDIT CARD,UNLAWFUL USE OF', 'CRIMINAL CONTEMPT 1', 'CRIMINAL DISPOSAL FIREARM 1 &', 'CRIMINAL MIS 2 & 3', 'CRIMINAL MISCHIEF 4TH, GRAFFIT', 'CRIMINAL MISCHIEF,UNCLASSIFIED 4', 'CUSTODIAL INTERFERENCE 1', 'CUSTODIAL INTERFERENCE 2', 'DIS. CON.,AGGRAVATED', 'DISORDERLY CONDUCT', 'DISSEMINATING A FALSE SEX OFFEND', 'DOG STEALING', 'DRUG PARAPHERNALIA,   POSSESSE', 'DRUG, INJECTION OF', 'EAVESDROPPING', 'EDUCATION LAW', 'EDUCATION LAW, TRUANCY', 'EDUCATION LAW,STREET TRADE', 'EDUCATION LAW,UNCLASSIFIED', 'END WELFARE VULNERABLE ELDERLY PERSON', 'ENTERPRISE CORRUPTION', 'ENVIRONMENTAL CONTROL BOARD', 'ESCAPE 2,1', 'ESCAPE 3', 'EXPOSURE OF A PERSON', 'FAC. SEXUAL OFFENSE W/CONTROLL', 'FACILITATION 3,2,1, CRIMINAL', 'FACILITATION 4, CRIMINAL', 'FALSE ALARM FIRE', 'FALSE REPORT 1,FIRE', 'FALSE REPORT BOMB', 'FALSE REPORT UNCLASSIFIED', 'FIREARMS LICENSING LAWS', 'FIREWORKS', 'FIREWORKS PREV CONV 5 YEARS', 'FIREWORKS, POSSESS/USE', 'FIREWORKS, SALE', 'FORGERY,DRIVERS LICENSE', 'FORGERY,ETC.,UNCLASSIFIED-FELO', 'FORGERY,ETC.-MISD.', 'FORGERY,M.V. REGISTRATION', 'FORGERY,PRESCRIPTION', 'FORGERY-ILLEGAL POSSESSION,VEH', 'FORTUNE TELLING', 'FRAUD,UNCLASSIFIED-FELONY', 'FRAUD,UNCLASSIFIED-MISDEMEANOR', 'GAMBLING 1,PROMOTING,BOOKMAKIN', 'GAMBLING 1,PROMOTING,POLICY', 'GAMBLING 2, PROMOTING, BOOKMAK', 'GAMBLING 2, PROMOTING, POLICY-', 'GAMBLING 2,PROMOTING,UNCLASSIF', 'GAMBLING, DEVICE, POSSESSION', 'GENERAL BUSINESS LAW / UNCLASSIFIED', 'GENERAL BUSINESS LAW,TICKET SP', 'GRAFFITI (ADMINISTRATIVE CODE-', 'GRAND LARCENY-CHECK FROM MAILB', 'GYPSY CAB', 'HARASSMENT,SUBD 1,CIVILIAN', 'HARASSMENT,SUBD 3,4,5', 'HEALTH CODE,UNCLASSIFIED MISDE', 'HEALTH CODE,VIOLATION', 'HEALTHCARE/RENT.REG.', 'HIND PROSEC. TERR 2', 'HOMICIDE, NEGLIGENT, VEHICLE,', 'HOMICIDE,NEGLIGENT,UNCLASSIFIE', 'HOMICIDE,NEGLIGENT,VEHICLE', 'IMITATION PISTOL/AIR RIFLE', 'IMPAIRED DRIVING,DRUG', 'IMPERSONATION 1, POLICE OFFICE', 'IMPERSONATION 2, PUBLIC SERVAN', 'IMPRISONMENT 1,UNLAWFUL', 'IMPRISONMENT 2,UNLAWFUL', 'INAPPROPIATE SHELTER DOG LEFT', 'INCEST', 'INCOMPETENT PERSON,KNOWINGLY ENDANGERING', 'INCOMPETENT PERSON,RECKLESSY ENDANGERING', 'INTOXICATED DRIVING,ALCOHOL', 'JOSTLING', 'KIDNAPPING 1', 'KIDNAPPING 2', 'LABOR LAW,EMPLOYING CHILDREN', 'LABOR TRAFFICKING', 'LARCENY, GRAND OF AUTO - ATTEM', 'LARCENY, GRAND OF MOPED', 'LARCENY, PETIT OF AUTO - ATTEM', 'LARCENY, PETIT OF MOPED', 'LARCENY,GRAND BY ACQUIRING LOS', 'LARCENY,GRAND BY ACQUIRING LOST CREDIT CARD', 'LARCENY,GRAND BY BANK ACCT COMPROMISE-ATM TRANSACTION', 'LARCENY,GRAND BY BANK ACCT COMPROMISE-REPRODUCED CHECK', 'LARCENY,GRAND BY BANK ACCT COMPROMISE-TELLER', 'LARCENY,GRAND BY BANK ACCT COMPROMISE-UNAUTHORIZED PURCHASE', 'LARCENY,GRAND BY BANK ACCT COMPROMISE-UNCLASSIFIED', 'LARCENY,GRAND BY CREDIT CARD ACCT COMPROMISE-EXISTING ACCT', 'LARCENY,GRAND BY CREDIT CARD COMPROMISE-UNAUTHORIZE PURCHASE', 'LARCENY,GRAND BY DISHONEST EMP', 'LARCENY,GRAND BY EXTORTION', 'LARCENY,GRAND BY FALSE PROMISE', 'LARCENY,GRAND BY FALSE PROMISE-IN PERSON CONTACT', 'LARCENY,GRAND BY FALSE PROMISE-NOT IN PERSON CONTACT', 'LARCENY,GRAND BY IDENTITY THEFT-UNCLASSIFIED', 'LARCENY,GRAND BY OPEN BANK ACCT', 'LARCENY,GRAND BY OPEN CREDIT CARD (NEW ACCT)', 'LARCENY,GRAND BY OPEN/COMPROMISE CELL PHONE ACCT', 'LARCENY,GRAND BY THEFT OF CREDIT CARD', 'LARCENY,GRAND FROM BOAT, UNATTENDED', 'LARCENY,GRAND FROM BUILDING (NON-RESIDENCE) UNATTENDED', 'LARCENY,GRAND FROM COIN MACHIN', 'LARCENY,GRAND FROM EATERY, UNATTENDED', 'LARCENY,GRAND FROM NIGHT CLUB, UNATTENDED', 'LARCENY,GRAND FROM OPEN AREAS, UNATTENDED', 'LARCENY,GRAND FROM PARKING MET', 'LARCENY,GRAND FROM PERSON, BAG OPEN/DIP', 'LARCENY,GRAND FROM PERSON,LUSH WORKER(SLEEPING/UNCON VICTIM)', 'LARCENY,GRAND FROM PERSON,PERSONAL ELECTRONIC DEVICE(SNATCH)', 'LARCENY,GRAND FROM PERSON,PICK', 'LARCENY,GRAND FROM PERSON,PURS', 'LARCENY,GRAND FROM PERSON,UNCL', 'LARCENY,GRAND FROM PIER, UNATTENDED', 'LARCENY,GRAND FROM RESIDENCE, UNATTENDED', 'LARCENY,GRAND FROM RETAIL STORE, UNATTENDED', 'LARCENY,GRAND FROM STORE-SHOPL', 'LARCENY,GRAND FROM TRUCK, UNATTENDED', 'LARCENY,GRAND FROM VEHICLE/MOTORCYCLE', 'LARCENY,GRAND OF AUTO', 'LARCENY,GRAND OF BICYCLE', 'LARCENY,GRAND OF BOAT', 'LARCENY,GRAND OF MOTORCYCLE', 'LARCENY,GRAND OF TRUCK', 'LARCENY,GRAND OF VEHICULAR/MOTORCYCLE ACCESSORIES', 'LARCENY,GRAND PERSON,NECK CHAI', 'LARCENY,PETIT BY ACQUIRING LOS', 'LARCENY,PETIT BY CHECK USE', 'LARCENY,PETIT BY CREDIT CARD U', 'LARCENY,PETIT BY DISHONEST EMP', 'LARCENY,PETIT BY FALSE PROMISE', 'LARCENY,PETIT FROM AUTO', 'LARCENY,PETIT FROM BOAT', 'LARCENY,PETIT FROM BUILDING,UN', 'LARCENY,PETIT FROM COIN MACHIN', 'LARCENY,PETIT FROM OPEN AREAS,', 'LARCENY,PETIT FROM PARKING MET', 'LARCENY,PETIT FROM PIER', 'LARCENY,PETIT FROM STORE-SHOPL', 'LARCENY,PETIT FROM TRUCK', 'LARCENY,PETIT OF AUTO', 'LARCENY,PETIT OF BICYCLE', 'LARCENY,PETIT OF BOAT', 'LARCENY,PETIT OF LICENSE PLATE', 'LARCENY,PETIT OF MOTORCYCLE', 'LARCENY,PETIT OF TRUCK', 'LARCENY,PETIT OF VEHICLE ACCES', 'LEAVING SCENE-ACCIDENT-PERSONA', 'LEWDNESS,PUBLIC', 'LOITERING 1ST DEGREE FOR DRUG', 'LOITERING FOR PROSTITUTION OR', 'LOITERING TO PROMOTE PROSTITUT', 'LOITERING,DEVIATE SEX', 'LOITERING,GAMBLING,OTHER', 'LOITERING,SCHOOL', 'LOITERING,UNCLASSIFIED', 'LURING A CHILD', 'MAKING TERRORISTIC THREAT', 'MANUFACTURE UNAUTHORIZED RECOR', 'MARIJUANA, POSSESSION', 'MARIJUANA, POSSESSION 1, 2 & 3', 'MARIJUANA, POSSESSION 4 & 5', 'MARIJUANA, SALE 1, 2 & 3', 'MARIJUANA, SALE 4 & 5', 'MARRIAGE,OFFENSES AGAINST,UNCL', 'MATERIAL              OFFENSIV', 'MENACING 1ST DEGREE (VICT NOT', 'MENACING 1ST DEGREE (VICT PEAC', 'MENACING,PEACE OFFICER', 'MENACING,UNCLASSIFIED', 'MISCHIEF 1,CRIMINAL,EXPLOSIVE', 'MISCHIEF, CRIMINAL 3 & 2, OF M', 'MISCHIEF, CRIMINAL 3&2, BY FIR', 'MISCHIEF, CRIMINAL 4, BY FIRE', 'MISCHIEF, CRIMINAL 4, OF MOTOR', 'MISCHIEF,CRIMINAL,    UNCL 2ND', 'MONEY LAUNDERING 1 & 2', 'N.Y.C. TRANSIT AUTH. R&R', 'NAVIGATION LAW', 'NEGLECT/POISON ANIMAL', 'NOISE,UNECESSARY', 'NUISANCE, CRIMINAL', 'NUISANCE,CRIMINAL,UNCLASSIFIED', 'NY STATE LAWS,UNCLASSIFIED FEL', 'NY STATE LAWS,UNCLASSIFIED MIS', 'NY STATE LAWS,UNCLASSIFIED VIO', 'OBSCENE MATERIAL - UNDER 17 YE', 'OBSCENITY 1', 'OBSCENITY, MATERIAL 3', 'OBSCENITY, PERFORMANCE 3', 'OBSTR BREATH/CIRCUL', 'PARK R&R,GAMBLING', 'PARKR&R,UNCLASSIFIED VIOLATION', 'PEDDLING,UNLAWFUL', 'PERJURY 2,1,ETC', 'PERJURY 3,ETC.', 'PETIT LARCENY OF ANIMAL', 'PETIT LARCENY-CHECK FROM MAILB', 'PLACE FALSE BOMB', 'POSS METH MANUFACT MATERIAL', 'POSSES OR CARRY A KNIFE', 'POSSESS PARAPHERNALIA/ANIMAL FIGHTING', 'POSSESSION ANTI-SECURITY ITEM', 'POSSESSION HYPODERMIC INSTRUME', 'POSTING ADVERTISEMENTS', 'PRIVACY,OFFENSES AGAINST,UNCLA', 'PROMOTING A SEXUAL PERFORMANCE', 'PROMOTING SUICIDE ATTEMPT', 'PROSTITUTION', 'PROSTITUTION 1, UNDER 11', 'PROSTITUTION 2, COMPULSORY', 'PROSTITUTION 2, UNDER 16', 'PROSTITUTION 3, PROMOTING UNDE', 'PROSTITUTION 3,PROMOTING BUSIN', 'PROSTITUTION 4,PROMOTING&SECUR', 'PROSTITUTION, PATRONIZING 2, 1', 'PROSTITUTION, PATRONIZING 4, 3', 'PROSTITUTION,PERMITTING', 'PUBLIC ADMINISTATION,UNCLASS M', 'PUBLIC ADMINISTRATION,UNCLASSI', 'PUBLIC HEALTH LAW,GLUE,INHALAT', 'PUBLIC HEALTH LAW,GLUE,UNLAWFU', 'PUBLIC HEALTH LAW,UNCLASSIFIED', 'PUBLIC SAFETY,UNCLASSIFIED MIS', 'RADIO DEVICES,UNLAWFUL POSSESS', 'RAPE 1', 'RAPE 1,ATTEMPT', 'RAPE 2', 'RAPE 3', 'RECKLESS DRIVING', 'RECKLESS ENDANGERMENT 1', 'RECKLESS ENDANGERMENT 2', 'RECKLESS ENDANGERMENT OF PROPE', 'RECORDS,FALSIFY-TAMPER', 'RESISTING ARREST', 'RIOT 1', 'RIOT 2/INCITING', 'ROBBERY, CHAIN STORE', 'ROBBERY, PAYROLL', 'ROBBERY,ATM LOCATION', 'ROBBERY,BANK', 'ROBBERY,BAR/RESTAURANT', 'ROBBERY,BEGIN AS SHOPLIFTING', 'ROBBERY,BICYCLE', 'ROBBERY,BODEGA/CONVENIENCE STORE', 'ROBBERY,CAR JACKING', 'ROBBERY,CHECK CASHING BUSINESS', 'ROBBERY,CLOTHING', 'ROBBERY,COMMERCIAL UNCLASSIFIED', 'ROBBERY,DELIVERY PERSON', 'ROBBERY,DOCTOR/DENTIST OFFICE', 'ROBBERY,DWELLING', 'ROBBERY,GAS STATION', 'ROBBERY,HIJACKING', 'ROBBERY,HOME INVASION', 'ROBBERY,LICENSED FOR HIRE VEHICLE', 'ROBBERY,LICENSED MEDALLION CAB', 'ROBBERY,LIQUOR STORE', 'ROBBERY,NECKCHAIN/JEWELRY', 'ROBBERY,OF TRUCK DRIVER', 'ROBBERY,ON BUS/ OR BUS DRIVER', 'ROBBERY,OPEN AREA UNCLASSIFIED', 'ROBBERY,PERSONAL ELECTRONIC DEVICE', 'ROBBERY,PHARMACY', 'ROBBERY,POCKETBOOK/CARRIED BAG', 'ROBBERY,PUBLIC PLACE INSIDE', 'ROBBERY,RESIDENTIAL COMMON AREA', 'ROBBERY,UNLICENSED FOR HIRE VEHICLE', 'SALE OF UNAUTHORIZED RECORDING', 'SALE SCHOOL GROUNDS', 'SALE SCHOOL GROUNDS 4', 'SALES OF PRESCRIPTION', 'SEX CRIMES', 'SEX TRAFFICKING', 'SEXUAL ABUSE', 'SEXUAL ABUSE 3,2', 'SEXUAL MISCONDUCT,DEVIATE', 'SEXUAL MISCONDUCT,INTERCOURSE', 'SMOKING TRANSPORTATION FACILIT', 'SODOMY 1', 'SODOMY 2', 'SODOMY 3', 'SODOMY,CONSENSUAL', 'SOLICITATION 3,2,1, CRIMINAL', 'SOLICITATION 4, CRIMINAL', 'SOLICITATION 5,CRIMINAL', 'STOLEN PROP-MOTOR VEHICLE 3RD,', 'STOLEN PROPERTY 2,1,POSSESSION', 'STOLEN PROPERTY 2,POSSESSION B', 'STOLEN PROPERTY 3,POSSESSION', 'STOLEN PROPERTY-MOTOR VEH 2ND,', 'STRANGULATION 1ST', 'SUPP. ACT TERR 2ND', 'TAMPERING 1,CRIMINAL', 'TAMPERING 3,2, CRIMINAL', 'TAMPERING WITH A WITNESS', 'TAX LAW', 'TERRORISM PROVIDE SUPPORT', 'THEFT OF SERVICES, UNCLASSIFIE', 'THEFT OF SERVICES- CABLE TV SE', 'THEFT,RELATED OFFENSES,UNCLASS', 'TORTURE/INJURE ANIMAL CRUELTY', 'TRAFFIC,UNCLASSIFIED INFRACTIO', 'TRAFFIC,UNCLASSIFIED MISDEMEAN', 'TRESPASS 1,CRIMINAL', 'TRESPASS 2, CRIMINAL', 'TRESPASS 3, CRIMINAL', 'TRESPASS 4,CRIMINAL SUB 2', 'UNAUTH. SALE OF TRANS. SERVICE', 'UNAUTHORIZED USE VEHICLE 2', 'UNAUTHORIZED USE VEHICLE 3', 'UNDER THE INFLUENCE OF DRUGS', 'UNLAWFUL DISCLOSURE OF AN INTIMATE IMAGE', 'UNLAWFUL POSS. WEAPON UPON SCH', 'UNLAWFUL SALE SYNTHETIC MARIJUANA', 'USE CHILD TO COMMIT CONT SUB OFF', 'USE OF A CHILD IN A SEXUAL PER', 'USURY,CRIMINAL', 'VEHICULAR ASSAULT (INTOX DRIVE', 'VIOLATION OF ORDER OF PROTECTI', 'WEAPONS DISPOSITION OF', 'WEAPONS POSSESSION 1 & 2', 'WEAPONS POSSESSION 3', 'WEAPONS, POSSESSION, ETC', 'WEAPONS,MFR,TRANSPORT,ETC.', 'WEAPONS,PROHIBITED USE', 'WEAPONS,PROHIBITED USE IMITATI', 'WOUNDS,REPORTING OF']
+
+
+
+
+
+
+	distinct values for key code    LAW_CAT_CD				3 values
+
+db.coll1nyccrimedata.distinct("LAW_CAT_CD")
+	returned in a long line which I formatted for readability  -- found 3 values
+[ "FELONY", "MISDEMEANOR", "VIOLATION" ]
+
+	to find the count of number of distinct values  add  .length in end
+>
+> db.coll1nyccrimedata.distinct("LAW_CAT_CD").length
+3
+>
+
+	already sorted
+
+
+
+
+
+
+	distinct values for key code    BORO_NM				6 values including null			null count only 10518
+
+> db.coll1nyccrimedata.distinct("BORO_NM")
+[ "QUEENS", "BRONX", "BROOKLYN", "STATEN ISLAND", "MANHATTAN", null ]
+db.coll1nyccrimedata.find({"BORO_NM": "MANHATTAN"}).count()
+db.coll1nyccrimedata.find({"BORO_NM": null}).count()
+QUEENS			= 1282057
+BRONX			= 1408361
+BROOKLYN		= 1935028
+STATEN ISLAND	= 306986
+MANHATTAN		= 1557920
+null			= 10518
+TOTAL			= 6500870   -- matches the total correctly
+
+
+
+
+
+	distinct values for key code    PREM_TYP_DESC				73 values including null   -- only 37703 had null
+
+> db.coll1nyccrimedata.distinct("PREM_TYP_DESC")
+[ "BAR/NIGHT CLUB", "RESIDENCE - PUBLIC HOUSING", "STREET", "RESIDENCE-HOUSE",
+
+null,
+
+"FAST FOOD", "RESIDENCE - APT. HOUSE", "PARKING LOT/GARAGE (PRIVATE)", "DEPARTMENT STORE", "RESTAURANT/DINER", "TAXI (LIVERY LICENSED)", "CHAIN STORE", "CLOTHING/BOUTIQUE", "COMMERCIAL BUILDING", "GROCERY/BODEGA", "PARK/PLAYGROUND", "CHURCH", "VARIETY STORE", "TRANSIT FACILITY (OTHER)", "OTHER", "PARKING LOT/GARAGE (PUBLIC)", "TRANSIT - NYC SUBWAY", "DRUG STORE", "DRY CLEANER/LAUNDRY", "BEAUTY & NAIL SALON", "BANK", "STORE UNCLASSIFIED", "BOOK/CARD", "DOCTOR/DENTIST OFFICE", "OPEN AREAS (OPEN LOTS)", "PUBLIC BUILDING", "SMALL MERCHANT", "HIGHWAY/PARKWAY", "GYM/FITNESS FACILITY", "FACTORY/WAREHOUSE", "VIDEO STORE", "LOAN COMPANY", "TUNNEL", "PUBLIC SCHOOL", "FOOD SUPERMARKET", "HOSPITAL", "CONSTRUCTION SITE", "TAXI (YELLOW LICENSED)", "SOCIAL CLUB/POLICY", "HOTEL/MOTEL", "BRIDGE", "BUS STOP", "PRIVATE/PAROCHIAL SCHOOL", "BUS (NYC TRANSIT)", "SHOE", "CANDY STORE", "TELECOMM. STORE", "FERRY/FERRY TERMINAL", "LIQUOR STORE", "SYNAGOGUE", "GAS STATION", "JEWELRY", "BUS TERMINAL", "MOSQUE", "AIRPORT TERMINAL", "BUS (OTHER)", "CEMETERY", "ATM", "ABANDONED BUILDING", "TAXI/LIVERY (UNLICENSED)", "PHOTO/COPY", "CHECK CASHING BUSINESS", "STORAGE FACILITY", "MARINA/PIER", "OTHER HOUSE OF WORSHIP", "TRAMWAY", "MAILBOX OUTSIDE", "MAILBOX INSIDE" ]
+
+> db.coll1nyccrimedata.distinct("PREM_TYP_DESC").length
+73
+
+
+	sorted values
+['ABANDONED BUILDING', 'AIRPORT TERMINAL', 'ATM', 'BANK', 'BAR/NIGHT CLUB', 'BEAUTY & NAIL SALON', 'BOOK/CARD', 'BRIDGE', 'BUS (NYC TRANSIT)', 'BUS (OTHER)', 'BUS STOP', 'BUS TERMINAL', 'CANDY STORE', 'CEMETERY', 'CHAIN STORE', 'CHECK CASHING BUSINESS', 'CHURCH', 'CLOTHING/BOUTIQUE', 'COMMERCIAL BUILDING', 'CONSTRUCTION SITE', 'DEPARTMENT STORE', 'DOCTOR/DENTIST OFFICE', 'DRUG STORE', 'DRY CLEANER/LAUNDRY', 'FACTORY/WAREHOUSE', 'FAST FOOD', 'FERRY/FERRY TERMINAL', 'FOOD SUPERMARKET', 'GAS STATION', 'GROCERY/BODEGA', 'GYM/FITNESS FACILITY', 'HIGHWAY/PARKWAY', 'HOSPITAL', 'HOTEL/MOTEL', 'JEWELRY', 'LIQUOR STORE', 'LOAN COMPANY', 'MAILBOX INSIDE', 'MAILBOX OUTSIDE', 'MARINA/PIER', 'MOSQUE', 'OPEN AREAS (OPEN LOTS)', 'OTHER', 'OTHER HOUSE OF WORSHIP', 'PARK/PLAYGROUND', 'PARKING LOT/GARAGE (PRIVATE)', 'PARKING LOT/GARAGE (PUBLIC)', 'PHOTO/COPY', 'PRIVATE/PAROCHIAL SCHOOL', 'PUBLIC BUILDING', 'PUBLIC SCHOOL', 'RESIDENCE - APT. HOUSE', 'RESIDENCE - PUBLIC HOUSING', 'RESIDENCE-HOUSE', 'RESTAURANT/DINER', 'SHOE', 'SMALL MERCHANT', 'SOCIAL CLUB/POLICY', 'STORAGE FACILITY', 'STORE UNCLASSIFIED', 'STREET', 'SYNAGOGUE', 'TAXI (LIVERY LICENSED)', 'TAXI (YELLOW LICENSED)', 'TAXI/LIVERY (UNLICENSED)', 'TELECOMM. STORE', 'TRAMWAY', 'TRANSIT - NYC SUBWAY', 'TRANSIT FACILITY (OTHER)', 'TUNNEL', 'VARIETY STORE', 'VIDEO STORE']
+
+
+
+
+
+
+		grouped by KY_CD and found all the PD_CD for each KY_CD code as array
+WITH limit
+db.coll1nyccrimedata.aggregate( [ {"$limit": 25}, {"$project": {_id: 0, "KY_CD": 1, "PD_CD": 1}}, {"$sort": {"KY_CD": 1, "PD_CD": 1} }, {"$group": { "_id" : "$KY_CD", "PD_CD_values": {"$addToSet": "$PD_CD"} } } ] , {allowDiskUse: true} )
+
+WITHOUT limit
+db.coll1nyccrimedata.aggregate( [ {"$project": {_id: 0, "KY_CD": 1, "PD_CD": 1}}, {"$sort": {"KY_CD": 1, "PD_CD": 1} }, {"$group": { "_id" : "$KY_CD", "PD_CD_values": {"$addToSet": "$PD_CD"} } } ] , {allowDiskUse: true} )
+
+{ "_id" : 881, "PD_CD_values" : [ 969 ] }
+{ "_id" : 685, "PD_CD_values" : [ 872 ] }
+{ "_id" : 676, "PD_CD_values" : [ 889, 885 ] }
+{ "_id" : 675, "PD_CD_values" : [ 975, 899, 890, 874, 872, 866, 862, 861, 868, 892, 864, 759, 860, 625, 858, 879, 749, 880 ] }
+{ "_id" : 672, "PD_CD_values" : [ 619, 614 ] }
+{ "_id" : 572, "PD_CD_values" : [ 625 ] }
+{ "_id" : 364, "PD_CD_values" : [ 848, 827, 826, 847, 818, 836, 817, 815, 813, 841, 811, 814, 809, 812, 808, 840, 625 ] }
+{ "_id" : 363, "PD_CD_values" : [ 799, 797, 788 ] }
+{ "_id" : 356, "PD_CD_values" : [ 618, 605, 565, 563 ] }
+{ "_id" : 355, "PD_CD_values" : [ 259, 181, 117, 191, 146, 195, 115 ] }
+{ "_id" : 354, "PD_CD_values" : [ 297, 289, 283 ] }
+{ "_id" : 346, "PD_CD_values" : [ 802 ] }
+{ "_id" : 345, "PD_CD_values" : [ 829, 822, 687, 683, 685, 688 ] }
+{ "_id" : 347, "PD_CD_values" : [ 907, 905, 779, 759 ] }
+{ "_id" : 344, "PD_CD_values" : [ 114, 779, 113, 637, 638, 111, 109, 749, 847, 759, 101 ] }
+{ "_id" : 343, "PD_CD_values" : [ 625, 489, 476, 478, 479, 475 ] }
+{ "_id" : 365, "PD_CD_values" : [ 878, 877, 853, 887, 779, 759, 876 ] }
+{ "_id" : 341, "PD_CD_values" : [ 779, 357, 681, 347, 344, 339, 331, 329, 349, 327, 323, 343, 333, 307, 305, 749, 313, 303, 301, 759, 345, 321, 335, 259, 338 ] }
+{ "_id" : 350, "PD_CD_values" : [ 759, 548, 544, 533, 537 ] }
+{ "_id" : 238, "PD_CD_values" : [ 466 ] }
+{ "_id" : 237, "PD_CD_values" : [ 759, 742 ] }
+{ "_id" : 361, "PD_CD_values" : [ 749, 731, 662, 669, 661, 648, 647, 649, 646, 643, 639, 638, 779, 637, 659, 248, 625, 652 ] }
+{ "_id" : 235, "PD_CD_values" : [ 759, 625, 569, 510, 509, 513, 511, 567, 508, 505 ] }
+{ "_id" : 233, "PD_CD_values" : [ 759, 681, 593, 175, 749, 174, 177, 170, 176, 157, 591, 162, 148 ] }
+{ "_id" : 232, "PD_CD_values" : [ 491, 490, 321 ] }
+{ "_id" : 455, "PD_CD_values" : [ 595 ] }
+{ "_id" : 677, "PD_CD_values" : [ 843, 821, 820, 849, 846, 819, 839, 803 ] }
+{ "_id" : 358, "PD_CD_values" : [ 715, 706, 705, 701, 638, 625 ] }
+{ "_id" : 126, "PD_CD_values" : [ 780, 766, 764, 762, 759, 749, 724, 721, 711, 708, 779, 696, 691, 672, 748, 665, 730, 667, 644, 641, 783, 640, 737, 461, 648, 277, 285, 291, 760, 199, 204, 293, 119, 678, 113, 107, 117, 761, 110, 197, 663, 299, 733, 104, 674, 594, 664, 198, 697, 625, 112 ] }
+{ "_id" : 125, "PD_CD_values" : [ 847, 845, 808, 779, 844 ] }
+{ "_id" : 123, "PD_CD_values" : [ 143 ] }
+{ "_id" : 340, "PD_CD_values" : [ 779, 759, 719, 703, 718, 770, 707 ] }
+{ "_id" : 360, "PD_CD_values" : [ 759, 731, 662, 749, 604, 649, 647, 669, 661, 625, 652, 659 ] }
+{ "_id" : 121, "PD_CD_values" : [ 779, 759, 267, 273, 266, 259, 268, 269, 254, 265 ] }
+{ "_id" : 120, "PD_CD_values" : [ 698, 695 ] }
+{ "_id" : 366, "PD_CD_values" : [ 888, 847 ] }
+{ "_id" : 349, "PD_CD_values" : [ 627 ] }
+{ "_id" : 118, "PD_CD_values" : [ 796, 793, 792, 781 ] }
+{ "_id" : 578, "PD_CD_values" : [ 749, 625, 639, 175, 779, 113, 637, 638, 759, 101 ] }
+{ "_id" : 342, "PD_CD_values" : [ 355, 351, 350, 342, 341 ] }
+{ "_id" : 231, "PD_CD_values" : [ 209 ] }
+{ "_id" : 116, "PD_CD_values" : [ 694, 693, 596, 180, 749, 177, 178, 594, 176, 168, 164, 166, 117, 179 ] }
+{ "_id" : 115, "PD_CD_values" : [ 588, 587, 586, 589, 585, 584, 561 ] }
+{ "_id" : 124, "PD_CD_values" : [ 759, 193, 183, 184, 186, 187, 185 ] }
+{ "_id" : 113, "PD_CD_values" : [ 727, 729, 725, 723 ] }
+{ "_id" : 111, "PD_CD_values" : [ 498, 494, 493, 491 ] }
+{ "_id" : 109, "PD_CD_values" : [ 759, 457, 739, 443, 439, 435, 434, 433, 431, 430, 429, 428, 427, 426, 425, 437, 424, 432, 421, 418, 417, 415, 419, 416, 411, 438, 409, 447, 408, 405, 412, 422, 410, 749, 404, 441, 420, 403, 436, 414, 402, 406, 413, 338, 423, 305, 718, 445, 407, 401 ] }
+{ "_id" : 234, "PD_CD_values" : [ 576, 574 ] }
+{ "_id" : 353, "PD_CD_values" : [ 462 ] }
+{ "_id" : 106, "PD_CD_values" : [ 779, 749, 109, 108, 106, 102, 639, 105, 103, 186, 759, 321, 101 ] }
+{ "_id" : 571, "PD_CD_values" : [ 610 ] }
+{ "_id" : 112, "PD_CD_values" : [ 759, 775, 749, 718, 772, 489, 405, 739 ] }
+{ "_id" : 348, "PD_CD_values" : [ 922, 918, 759, 916, 333 ] }
+{ "_id" : 110, "PD_CD_values" : [ 451, 455, 450, 442, 441 ] }
+{ "_id" : 114, "PD_CD_values" : [ 264, 263, 261 ] }
+{ "_id" : 236, "PD_CD_values" : [ 785, 793, 784, 782, 798, 786, 787, 779, 759, 749 ] }
+{ "_id" : 104, "PD_CD_values" : [ 159, 157, 155, 153 ] }
+{ "_id" : 117, "PD_CD_values" : [ 847, 749, 570, 530, 529, 522, 521, 515, 514, 520, 531, 513, 568, 512, 523, 519, 524, 511, 507, 503, 510, 502, 501, 505, 532, 500 ] }
+{ "_id" : 577, "PD_CD_values" : [ 622 ] }
+{ "_id" : 107, "PD_CD_values" : [ 243, 241, 244, 234, 339, 231, 224, 233, 223, 213, 211, 221, 214 ] }
+{ "_id" : 230, "PD_CD_values" : [ 464, 259 ] }
+{ "_id" : 103, "PD_CD_values" : [ 125 ] }
+{ "_id" : 460, "PD_CD_values" : [ 602 ] }
+{ "_id" : 359, "PD_CD_values" : [ 779, 756, 750, 746, 744, 748, 438, 749, 339, 759, 101 ] }
+{ "_id" : 351, "PD_CD_values" : [ 759, 645, 779, 637, 277, 749, 263, 259, 271, 397, 258, 256, 254 ] }
+{ "_id" : 362, "PD_CD_values" : [ 689 ] }
+{ "_id" : 105, "PD_CD_values" : [ 419, 398, 397, 395, 391, 389, 392, 388, 387, 386, 399, 393, 383, 394, 382, 381, 379, 385, 371, 377, 367, 380, 384, 365, 375, 396, 390, 361, 363, 373, 366, 360 ] }
+{ "_id" : 678, "PD_CD_values" : [ 759, 754, 639, 633, 566, 478, 789, 477, 281, 275, 201 ] }
+{ "_id" : 352, "PD_CD_values" : [ 759, 750, 779, 205, 204, 203 ] }
+{ "_id" : 119, "PD_CD_values" : [ 904 ] }
+{ "_id" : 102, "PD_CD_values" : [ 122, 121 ] }
+{ "_id" : 122, "PD_CD_values" : [ 557, 553 ] }
+{ "_id" : 101, "PD_CD_values" : [ null ] }
+{ "_id" : 357, "PD_CD_values" : [ 468 ] }
+>
+
+
+
+
+			find all KY_CD and the corresponding OFNS_DESC for it
+
+WITH limit and disk use allowed
+		did not work   if you leave out unwind part then duplicates are present
+db.coll1nyccrimedata.aggregate( [ {"$limit": 50}, {"$project": {"_id": 0, "KY_CD": 1, "OFNS_DESC": 1} } , {"$group": {"_id" : null, "uniqueValues": {"$push": {"KY_CD": "$KY_CD", "OFNS_DESC": "$OFNS_DESC"} } } }, {"$group": {"_id": null , "FINALuniqueValues": {"$addToSet": "$uniqueValues" } } } ] , {allowDiskUse: true} )
+
+	this one worked with $unwind
+db.coll1nyccrimedata.aggregate( [ {"$limit": 100000}, {"$project": {"_id": 0, "KY_CD": 1, "OFNS_DESC": 1} } , {"$group": {"_id" : null, "uniqueValues": {"$push": {"KY_CD": "$KY_CD", "OFNS_DESC": "$OFNS_DESC"} } } }, {"$unwind": "$uniqueValues"} , {"$group": {"_id": null , "FINALuniqueValues": {"$addToSet": "$uniqueValues" } } } ] , {allowDiskUse: true} )
+
+WITHOUT limit  and  disk use allowed		-- found all 427 types of entries
+db.coll1nyccrimedata.aggregate( [ {"$project": {"_id": 0, "KY_CD": 1, "OFNS_DESC": 1} } , {"$group": {"_id" : null, "uniqueValues": {"$push": {"KY_CD": "$KY_CD", "OFNS_DESC": "$OFNS_DESC"} } } }, {"$unwind": "$uniqueValues"} , {"$group": {"_id": null , "FINALuniqueValues": {"$addToSet": "$uniqueValues" } } } ] , {allowDiskUse: true} )
+
+
+{ "KY_CD" : 101, "OFNS_DESC" : "MURDER & NON-NEGL. MANSLAUGHTER" },
+{ "KY_CD" : 102, "OFNS_DESC" : "HOMICIDE-NEGLIGENT-VEHICLE" },
+{ "KY_CD" : 103, "OFNS_DESC" : "HOMICIDE-NEGLIGENT,UNCLASSIFIE" },
+{ "KY_CD" : 104, "OFNS_DESC" : "RAPE" },
+{ "KY_CD" : 105, "OFNS_DESC" : "ROBBERY" },
+{ "KY_CD" : 105, "OFNS_DESC" : null },
+{ "KY_CD" : 106, "OFNS_DESC" : "FELONY ASSAULT" },
+{ "KY_CD" : 106, "OFNS_DESC" : null },
+{ "KY_CD" : 107, "OFNS_DESC" : "BURGLARY" },
+{ "KY_CD" : 107, "OFNS_DESC" : null },
+{ "KY_CD" : 109, "OFNS_DESC" : "GRAND LARCENY" },
+{ "KY_CD" : 109, "OFNS_DESC" : null },
+{ "KY_CD" : 110, "OFNS_DESC" : "GRAND LARCENY OF MOTOR VEHICLE" },
+{ "KY_CD" : 111, "OFNS_DESC" : "POSSESSION OF STOLEN PROPERTY" },
+{ "KY_CD" : 111, "OFNS_DESC" : null },
+{ "KY_CD" : 112, "OFNS_DESC" : "THEFT-FRAUD" },
+{ "KY_CD" : 112, "OFNS_DESC" : null },
+{ "KY_CD" : 113, "OFNS_DESC" : "FORGERY" },
+{ "KY_CD" : 114, "OFNS_DESC" : "ARSON" },
+{ "KY_CD" : 115, "OFNS_DESC" : "PROSTITUTION & RELATED OFFENSES" },
+{ "KY_CD" : 116, "OFNS_DESC" : "SEX CRIMES" },
+{ "KY_CD" : 116, "OFNS_DESC" : null },
+{ "KY_CD" : 117, "OFNS_DESC" : "DANGEROUS DRUGS" },
+{ "KY_CD" : 117, "OFNS_DESC" : null },
+{ "KY_CD" : 118, "OFNS_DESC" : "DANGEROUS WEAPONS" },
+{ "KY_CD" : 119, "OFNS_DESC" : "INTOXICATED/IMPAIRED DRIVING" },
+{ "KY_CD" : 120, "OFNS_DESC" : "CHILD ABANDONMENT/NON SUPPORT" },
+{ "KY_CD" : 120, "OFNS_DESC" : "ENDAN WELFARE INCOMP" },
+{ "KY_CD" : 121, "OFNS_DESC" : "CRIMINAL MISCHIEF & RELATED OF" },
+{ "KY_CD" : 121, "OFNS_DESC" : null },
+{ "KY_CD" : 122, "OFNS_DESC" : "GAMBLING" },
+{ "KY_CD" : 123, "OFNS_DESC" : "ABORTION" },
+{ "KY_CD" : 124, "OFNS_DESC" : "KIDNAPPING & RELATED OFFENSES" },
+{ "KY_CD" : 124, "OFNS_DESC" : "KIDNAPPING AND RELATED OFFENSES" },
+{ "KY_CD" : 124, "OFNS_DESC" : "KIDNAPPING" },
+{ "KY_CD" : 124, "OFNS_DESC" : null },
+{ "KY_CD" : 125, "OFNS_DESC" : "NYS LAWS-UNCLASSIFIED FELONY" },
+{ "KY_CD" : 125, "OFNS_DESC" : "OTHER STATE LAWS (NON PENAL LA" },
+{ "KY_CD" : 125, "OFNS_DESC" : null },
+{ "KY_CD" : 126, "OFNS_DESC" : "MISCELLANEOUS PENAL LAW" },
+{ "KY_CD" : 126, "OFNS_DESC" : null },
+{ "KY_CD" : 230, "OFNS_DESC" : "JOSTLING" },
+{ "KY_CD" : 230, "OFNS_DESC" : null },
+{ "KY_CD" : 231, "OFNS_DESC" : "BURGLAR'S TOOLS" },
+{ "KY_CD" : 232, "OFNS_DESC" : "POSSESSION OF STOLEN PROPERTY" },
+{ "KY_CD" : 232, "OFNS_DESC" : null },
+{ "KY_CD" : 233, "OFNS_DESC" : "SEX CRIMES" },
+{ "KY_CD" : 233, "OFNS_DESC" : null },
+{ "KY_CD" : 234, "OFNS_DESC" : "PROSTITUTION & RELATED OFFENSES" },
+{ "KY_CD" : 235, "OFNS_DESC" : "DANGEROUS DRUGS" },
+{ "KY_CD" : 235, "OFNS_DESC" : null },
+{ "KY_CD" : 236, "OFNS_DESC" : "DANGEROUS WEAPONS" },
+{ "KY_CD" : 236, "OFNS_DESC" : null },
+{ "KY_CD" : 237, "OFNS_DESC" : "ESCAPE 3" },
+{ "KY_CD" : 237, "OFNS_DESC" : null },
+{ "KY_CD" : 238, "OFNS_DESC" : "FRAUDULENT ACCOSTING" },
+{ "KY_CD" : 340, "OFNS_DESC" : "FRAUDS" },
+{ "KY_CD" : 340, "OFNS_DESC" : null },
+{ "KY_CD" : 341, "OFNS_DESC" : "PETIT LARCENY" },
+{ "KY_CD" : 341, "OFNS_DESC" : null },
+{ "KY_CD" : 342, "OFNS_DESC" : "PETIT LARCENY OF MOTOR VEHICLE" },
+{ "KY_CD" : 343, "OFNS_DESC" : "OTHER OFFENSES RELATED TO THEF" },
+{ "KY_CD" : 343, "OFNS_DESC" : "THEFT OF SERVICES" },
+{ "KY_CD" : 343, "OFNS_DESC" : null },
+{ "KY_CD" : 344, "OFNS_DESC" : "ASSAULT 3 & RELATED OFFENSES" },
+{ "KY_CD" : 344, "OFNS_DESC" : null },
+{ "KY_CD" : 345, "OFNS_DESC" : "ENDAN WELFARE INCOMP" },
+{ "KY_CD" : 345, "OFNS_DESC" : "OFFENSES RELATED TO CHILDREN" },
+{ "KY_CD" : 346, "OFNS_DESC" : "ALCOHOLIC BEVERAGE CONTROL LAW" },
+{ "KY_CD" : 347, "OFNS_DESC" : "INTOXICATED & IMPAIRED DRIVING" },
+{ "KY_CD" : 347, "OFNS_DESC" : null },
+{ "KY_CD" : 348, "OFNS_DESC" : "VEHICLE AND TRAFFIC LAWS" },
+{ "KY_CD" : 348, "OFNS_DESC" : null },
+{ "KY_CD" : 349, "OFNS_DESC" : "DISRUPTION OF A RELIGIOUS SERV" },
+{ "KY_CD" : 350, "OFNS_DESC" : "GAMBLING" },
+{ "KY_CD" : 350, "OFNS_DESC" : null },
+{ "KY_CD" : 351, "OFNS_DESC" : "CRIMINAL MISCHIEF & RELATED OF" },
+{ "KY_CD" : 351, "OFNS_DESC" : null },
+{ "KY_CD" : 352, "OFNS_DESC" : "CRIMINAL TRESPASS" },
+{ "KY_CD" : 352, "OFNS_DESC" : null },
+{ "KY_CD" : 353, "OFNS_DESC" : "UNAUTHORIZED USE OF A VEHICLE" },
+{ "KY_CD" : 354, "OFNS_DESC" : "ANTICIPATORY OFFENSES" },
+{ "KY_CD" : 355, "OFNS_DESC" : "OFFENSES AGAINST THE PERSON" },
+{ "KY_CD" : 355, "OFNS_DESC" : null },
+{ "KY_CD" : 356, "OFNS_DESC" : "PROSTITUTION & RELATED OFFENSES" },
+{ "KY_CD" : 356, "OFNS_DESC" : null },
+{ "KY_CD" : 357, "OFNS_DESC" : "FORTUNE TELLING" },
+{ "KY_CD" : 358, "OFNS_DESC" : "OFFENSES INVOLVING FRAUD" },
+{ "KY_CD" : 358, "OFNS_DESC" : null },
+{ "KY_CD" : 359, "OFNS_DESC" : "OFFENSES AGAINST PUBLIC ADMINI" },
+{ "KY_CD" : 359, "OFNS_DESC" : null },
+{ "KY_CD" : 360, "OFNS_DESC" : "LOITERING FOR DRUG PURPOSES" },
+{ "KY_CD" : 360, "OFNS_DESC" : null },
+{ "KY_CD" : 361, "OFNS_DESC" : "OFF. AGNST PUB ORD SENSBLTY &" },
+{ "KY_CD" : 361, "OFNS_DESC" : null },
+{ "KY_CD" : 362, "OFNS_DESC" : "OFFENSES AGAINST MARRIAGE UNCL" },
+{ "KY_CD" : 363, "OFNS_DESC" : "OFFENSES AGAINST PUBLIC SAFETY" },
+{ "KY_CD" : 364, "OFNS_DESC" : "AGRICULTURE & MRKTS LAW-UNCLASSIFIED" },
+{ "KY_CD" : 364, "OFNS_DESC" : "OTHER STATE LAWS (NON PENAL LA" },
+{ "KY_CD" : 364, "OFNS_DESC" : "OTHER STATE LAWS (NON PENAL LAW)" },
+{ "KY_CD" : 364, "OFNS_DESC" : null },
+{ "KY_CD" : 365, "OFNS_DESC" : "ADMINISTRATIVE CODE" },
+{ "KY_CD" : 365, "OFNS_DESC" : null },
+{ "KY_CD" : 366, "OFNS_DESC" : "NEW YORK CITY HEALTH CODE" },
+{ "KY_CD" : 366, "OFNS_DESC" : null },
+{ "KY_CD" : 455, "OFNS_DESC" : "UNLAWFUL POSS. WEAP. ON SCHOOL" },
+{ "KY_CD" : 460, "OFNS_DESC" : "LOITERING/DEVIATE SEX" },
+{ "KY_CD" : 571, "OFNS_DESC" : "LOITERING/GAMBLING (CARDS, DIC" },
+{ "KY_CD" : 572, "OFNS_DESC" : "DISORDERLY CONDUCT" },
+{ "KY_CD" : 577, "OFNS_DESC" : "UNDER THE INFLUENCE OF DRUGS" },
+{ "KY_CD" : 578, "OFNS_DESC" : "HARRASSMENT 2" },
+{ "KY_CD" : 578, "OFNS_DESC" : null },
+{ "KY_CD" : 672, "OFNS_DESC" : "LOITERING" },
+{ "KY_CD" : 675, "OFNS_DESC" : "ADMINISTRATIVE CODE" },
+{ "KY_CD" : 675, "OFNS_DESC" : null },
+{ "KY_CD" : 676, "OFNS_DESC" : "NEW YORK CITY HEALTH CODE" },
+{ "KY_CD" : 677, "OFNS_DESC" : "NYS LAWS-UNCLASSIFIED VIOLATION" },
+{ "KY_CD" : 677, "OFNS_DESC" : "OTHER STATE LAWS" },
+{ "KY_CD" : 678, "OFNS_DESC" : "MISCELLANEOUS PENAL LAW" },
+{ "KY_CD" : 678, "OFNS_DESC" : null },
+{ "KY_CD" : 685, "OFNS_DESC" : "ADMINISTRATIVE CODES" },
+{ "KY_CD" : 881, "OFNS_DESC" : "OTHER TRAFFIC INFRACTION" }
+
+
+			find all PD_CD and the corresponding PD_DESC for it
+
+WITH limit and disk use allowed
+		did not work   if you leave out unwind part then duplicates are present
+db.coll1nyccrimedata.aggregate( [ {"$limit": 50}, {"$project": {"_id": 0, "PD_CD": 1, "PD_DESC": 1} } , {"$group": {"_id" : null, "uniqueValues": {"$push": {"PD_CD": "$PD_CD", "PD_DESC": "$PD_DESC"} } } }, {"$group": {"_id": null , "FINALuniqueValues": {"$addToSet": "$uniqueValues" } } } ] , {allowDiskUse: true} )
+
+	this one worked with $unwind
+db.coll1nyccrimedata.aggregate( [ {"$limit": 100000}, {"$project": {"_id": 0, "PD_CD": 1, "PD_DESC": 1} } , {"$group": {"_id" : null, "uniqueValues": {"$push": {"PD_CD": "$PD_CD", "PD_DESC": "$PD_DESC"} } } }, {"$unwind": "$uniqueValues"} , {"$group": {"_id": null , "FINALuniqueValues": {"$addToSet": "$uniqueValues" } } } ] , {allowDiskUse: true} )
+
+WITHOUT limit  and  disk use allowed		-- found all 427 types of entries
+db.coll1nyccrimedata.aggregate( [ {"$project": {"_id": 0, "PD_CD": 1, "PD_DESC": 1} } , {"$group": {"_id" : null, "uniqueValues": {"$push": {"PD_CD": "$PD_CD", "PD_DESC": "$PD_DESC"} } } }, {"$unwind": "$uniqueValues"} , {"$group": {"_id": null , "FINALuniqueValues": {"$addToSet": "$uniqueValues" } } } ] , {allowDiskUse: true} )
+
+{ "PD_CD" : 819, "PD_DESC" : "EDUCATION LAW,STREET TRADE" }, { "PD_CD" : 678, "PD_DESC" : "ANARCHY,CRIMINAL" }, { "PD_CD" : 885, "PD_DESC" : "SMOKING TRANSPORTATION FACILIT" }, { "PD_CD" : 102, "PD_DESC" : "ASSAULT SCHOOL SAFETY AGENT" }, { "PD_CD" : 813, "PD_DESC" : "POSSESS PARAPHERNALIA/ANIMAL FIGHTING" }, { "PD_CD" : 876, "PD_DESC" : "UNLAWFUL SALE SYNTHETIC MARIJUANA" }, { "PD_CD" : 861, "PD_DESC" : "AIRPOLLUTION" }, { "PD_CD" : 844, "PD_DESC" : "CAUSE SPI/KILL ANIMAL" }, { "PD_CD" : 843, "PD_DESC" : "INAPPROPIATE SHELTER DOG LEFT" }, { "PD_CD" : 387, "PD_DESC" : "ROBBERY,CLOTHING" }, { "PD_CD" : 820, "PD_DESC" : "EDUCATION LAW, TRUANCY" }, { "PD_CD" : 698, "PD_DESC" : "INCOMPETENT PERSON,KNOWINGLY ENDANGERING" }, { "PD_CD" : 839, "PD_DESC" : "PUBLIC HEALTH LAW,GLUE,INHALAT" }, { "PD_CD" : 667, "PD_DESC" : "HIND PROSEC. TERR 2" }, { "PD_CD" : 432, "PD_DESC" : "LARCENY,GRAND BY IDENTITY THEFT-UNCLASSIFIED" }, { "PD_CD" : 428, "PD_DESC" : "LARCENY,GRAND BY BANK ACCT COMPROMISE-UNAUTHORIZED PURCHASE" }, { "PD_CD" : 437, "PD_DESC" : "LARCENY,GRAND BY FALSE PROMISE-IN PERSON CONTACT" }, { "PD_CD" : 411, "PD_DESC" : "LARCENY,GRAND FROM EATERY, UNATTENDED" }, { "PD_CD" : 425, "PD_DESC" : "LARCENY,GRAND BY BANK ACCT COMPROMISE-ATM TRANSACTION" }, { "PD_CD" : 176, "PD_DESC" : "SEX CRIMES" }, { "PD_CD" : 162, "PD_DESC" : "SODOMY,CONSENSUAL" }, { "PD_CD" : 737, "PD_DESC" : "USURY,CRIMINAL" }, { "PD_CD" : 664, "PD_DESC" : "TERRORISM PROVIDE SUPPORT" }, { "PD_CD" : 860, "PD_DESC" : "AIR POLLUTION-MOTOR VEH (ADM C" }, { "PD_CD" : 817, "PD_DESC" : "TORTURE/INJURE ANIMAL CRUELTY" }, { "PD_CD" : 836, "PD_DESC" : "NAVIGATION LAW" }, { "PD_CD" : 355, "PD_DESC" : "LARCENY,PETIT OF TRUCK" }, { "PD_CD" : 685, "PD_DESC" : "CHILD,LICENSED PREMISES" }, { "PD_CD" : 114, "PD_DESC" : "OBSTR BREATH/CIRCUL" }, { "PD_CD" : 268, "PD_DESC" : "CRIMINAL MIS 2 & 3" }, { "PD_CD" : 105, "PD_DESC" : "STRANGULATION 1ST" }, { "PD_CD" : 622, "PD_DESC" : "UNDER THE INFLUENCE OF DRUGS" }, { "PD_CD" : 390, "PD_DESC" : "ROBBERY,HOME INVASION" }, { "PD_CD" : 786, "PD_DESC" : "WEAPONS,PROHIBITED USE" }, { "PD_CD" : 408, "PD_DESC" : "LARCENY,GRAND FROM PERSON,LUSH WORKER(SLEEPING/UNCON VICTIM)" }, { "PD_CD" : 146, "PD_DESC" : "ABORTION 2, 1, SELF" }, { "PD_CD" : 427, "PD_DESC" : "LARCENY,GRAND FROM PARKING MET" }, { "PD_CD" : 866, "PD_DESC" : "FIREWORKS" }, { "PD_CD" : 812, "PD_DESC" : "AGRICULTURE & MARKETS LAW,UNCL" }, { "PD_CD" : 689, "PD_DESC" : "MARRIAGE,OFFENSES AGAINST,UNCL" }, { "PD_CD" : 663, "PD_DESC" : "SUPP. ACT TERR 2ND" }, { "PD_CD" : 281, "PD_DESC" : "SOLICITATION 5,CRIMINAL" }, { "PD_CD" : 586, "PD_DESC" : "SEX TRAFFICKING" }, { "PD_CD" : 880, "PD_DESC" : "POSSES OR CARRY A KNIFE" }, { "PD_CD" : 614, "PD_DESC" : "LOITERING,SCHOOL" }, { "PD_CD" : 789, "PD_DESC" : "FIREWORKS, POSSESS/USE" }, { "PD_CD" : 648, "PD_DESC" : "PLACE FALSE BOMB" }, { "PD_CD" : 103, "PD_DESC" : "ASSAULT TRAFFIC AGENT" }, { "PD_CD" : 404, "PD_DESC" : "LARCENY,GRAND FROM PERSON,PERSONAL ELECTRONIC DEVICE(SNATCH)" }, { "PD_CD" : 619, "PD_DESC" : "LOITERING,UNCLASSIFIED" }, { "PD_CD" : 574, "PD_DESC" : "PROSTITUTION,PERMITTING" }, { "PD_CD" : 386, "PD_DESC" : "ROBBERY,PERSONAL ELECTRONIC DEVICE" }, { "PD_CD" : 587, "PD_DESC" : "PROSTITUTION 2, COMPULSORY" }, { "PD_CD" : 584, "PD_DESC" : "PROSTITUTION 3, PROMOTING UNDE" }, { "PD_CD" : 468, "PD_DESC" : "FORTUNE TELLING" }, { "PD_CD" : 746, "PD_DESC" : "PERJURY 3,ETC." }, { "PD_CD" : 696, "PD_DESC" : "PROMOTING A SEXUAL PERFORMANCE" }, { "PD_CD" : 969, "PD_DESC" : "TRAFFIC,UNCLASSIFIED INFRACTIO" }, { "PD_CD" : 721, "PD_DESC" : "BRIBERY,FRAUD" }, { "PD_CD" : 429, "PD_DESC" : "LARCENY,GRAND FROM COIN MACHIN" }, { "PD_CD" : 803, "PD_DESC" : "A.B.C.,FALSE PROOF OF AGE" }, { "PD_CD" : 588, "PD_DESC" : "PROSTITUTION 2, UNDER 16" }, { "PD_CD" : 530, "PD_DESC" : "DRUG, INJECTION OF" }, { "PD_CD" : 688, "PD_DESC" : "INCOMPETENT PERSON,RECKLESSY ENDANGERING" }, { "PD_CD" : 498, "PD_DESC" : "STOLEN PROPERTY 2,POSSESSION B" }, { "PD_CD" : 289, "PD_DESC" : "CONSPIRACY 6, 5" }, { "PD_CD" : 553, "PD_DESC" : "GAMBLING 1,PROMOTING,BOOKMAKIN" }, { "PD_CD" : 691, "PD_DESC" : "BIGAMY" }, { "PD_CD" : 383, "PD_DESC" : "ROBBERY,DELIVERY PERSON" }, { "PD_CD" : 430, "PD_DESC" : "LARCENY,GRAND BY BANK ACCT COMPROMISE-UNCLASSIFIED" }, { "PD_CD" : 889, "PD_DESC" : "HEALTH CODE,VIOLATION" }, { "PD_CD" : 119, "PD_DESC" : "PROMOTING SUICIDE ATTEMPT" }, { "PD_CD" : 766, "PD_DESC" : "PERJURY 2,1,ETC" }, { "PD_CD" : 604, "PD_DESC" : "LOITERING 1ST DEGREE FOR DRUG" }, { "PD_CD" : 593, "PD_DESC" : "OBSCENITY, MATERIAL 3" }, { "PD_CD" : 872, "PD_DESC" : "NOISE,UNECESSARY" }, { "PD_CD" : 864, "PD_DESC" : "BUILDING MATERIAL" }, { "PD_CD" : 195, "PD_DESC" : "COERCION 2" }, { "PD_CD" : 436, "PD_DESC" : "LARCENY,GRAND BY CREDIT CARD COMPROMISE-UNAUTHORIZE PURCHASE" }, { "PD_CD" : 576, "PD_DESC" : "PROSTITUTION 4,PROMOTING&SECUR" }, { "PD_CD" : 381, "PD_DESC" : "ROBBERY,HIJACKING" }, { "PD_CD" : 418, "PD_DESC" : "LARCENY,GRAND BY ACQUIRING LOST CREDIT CARD" }, { "PD_CD" : 464, "PD_DESC" : "JOSTLING" }, { "PD_CD" : 697, "PD_DESC" : "USE OF A CHILD IN A SEXUAL PER" }, { "PD_CD" : 110, "PD_DESC" : "MENACING 1ST DEGREE (VICT PEAC" }, { "PD_CD" : 888, "PD_DESC" : "HEALTH CODE,UNCLASSIFIED MISDE" }, { "PD_CD" : 529, "PD_DESC" : "SALES OF PRESCRIPTION" }, { "PD_CD" : 799, "PD_DESC" : "PUBLIC SAFETY,UNCLASSIFIED MIS" }, { "PD_CD" : 845, "PD_DESC" : "BREED/TRAIN/HOST ANIMAL FIGHTING" }, { "PD_CD" : 393, "PD_DESC" : "ROBBERY,OF TRUCK DRIVER" }, { "PD_CD" : 811, "PD_DESC" : "DOG STEALING" }, { "PD_CD" : 645, "PD_DESC" : "FALSE ALARM FIRE" }, { "PD_CD" : 475, "PD_DESC" : "UNAUTH. SALE OF TRANS. SERVICE" }, { "PD_CD" : 846, "PD_DESC" : "CONFINING ANIMAL IN VEHICLE/SHELTER" }, { "PD_CD" : 822, "PD_DESC" : "EDUCATION LAW" }, { "PD_CD" : 180, "PD_DESC" : "COURSE OF SEXUAL CONDUCT AGAIN" }, { "PD_CD" : 342, "PD_DESC" : "LARCENY, PETIT OF AUTO - ATTEM" }, { "PD_CD" : 104, "PD_DESC" : "VEHICULAR ASSAULT (INTOX DRIVE" }, { "PD_CD" : 178, "PD_DESC" : "FAC. SEXUAL OFFENSE W/CONTROLL" }, { "PD_CD" : 879, "PD_DESC" : "ADM.CODE,UNCLASSIFIED VIOLATIO" }, { "PD_CD" : 840, "PD_DESC" : "PUBLIC HEALTH LAW,GLUE,UNLAWFU" }, { "PD_CD" : 122, "PD_DESC" : "HOMICIDE, NEGLIGENT, VEHICLE," }, { "PD_CD" : 858, "PD_DESC" : "IMITATION PISTOL/AIR RIFLE" }, { "PD_CD" : 331, "PD_DESC" : "LARCENY,PETIT FROM PIER" }, { "PD_CD" : 783, "PD_DESC" : "FIREWORKS PREV CONV 5 YEARS" }, { "PD_CD" : 291, "PD_DESC" : "CONSPIRACY 4, 3" }, { "PD_CD" : 780, "PD_DESC" : "NUISANCE, CRIMINAL" }, { "PD_CD" : 261, "PD_DESC" : "ARSON 1" }, { "PD_CD" : 868, "PD_DESC" : "GYPSY CAB" }, { "PD_CD" : 781, "PD_DESC" : "CRIMINAL DISPOSAL FIREARM 1 &" }, { "PD_CD" : 244, "PD_DESC" : "BURGLARY,UNCLASSIFIED,UNKNOWN" }, { "PD_CD" : 426, "PD_DESC" : "LARCENY,GRAND BY BANK ACCT COMPROMISE-TELLER" }, { "PD_CD" : 641, "PD_DESC" : "HEALTHCARE/RENT.REG." }, { "PD_CD" : 107, "PD_DESC" : "END WELFARE VULNERABLE ELDERLY PERSON" }, { "PD_CD" : 187, "PD_DESC" : "KIDNAPPING 1" }, { "PD_CD" : 283, "PD_DESC" : "SOLICITATION 4, CRIMINAL" }, { "PD_CD" : 742, "PD_DESC" : "ESCAPE 3" }, { "PD_CD" : 299, "PD_DESC" : "FACILITATION 3,2,1, CRIMINAL" }, { "PD_CD" : 787, "PD_DESC" : "WEAPONS,PROHIBITED USE IMITATI" }, { "PD_CD" : 625, "PD_DESC" : "DISORDERLY CONDUCT" }, { "PD_CD" : 563, "PD_DESC" : "PROSTITUTION" }, { "PD_CD" : 143, "PD_DESC" : "ABORTION 1" }, { "PD_CD" : 899, "PD_DESC" : "PARKR&R,UNCLASSIFIED VIOLATION" }, { "PD_CD" : 435, "PD_DESC" : "LARCENY,GRAND FROM TRUCK, UNATTENDED" }, { "PD_CD" : 199, "PD_DESC" : "AGGRAVATED CRIMINAL CONTEMPT" }, { "PD_CD" : 557, "PD_DESC" : "GAMBLING 1,PROMOTING,POLICY" }, { "PD_CD" : 841, "PD_DESC" : "PUBLIC HEALTH LAW,UNCLASSIFIED" }, { "PD_CD" : 802, "PD_DESC" : "ALCOHOLIC BEVERAGE CONTROL LAW" }, { "PD_CD" : 409, "PD_DESC" : "LARCENY,GRAND BY EXTORTION" }, { "PD_CD" : 633, "PD_DESC" : "EXPOSURE OF A PERSON" }, { "PD_CD" : 519, "PD_DESC" : "SALE SCHOOL GROUNDS 4" }, { "PD_CD" : 605, "PD_DESC" : "LOITERING TO PROMOTE PROSTITUT" }, { "PD_CD" : 754, "PD_DESC" : "APPEARANCE TICKET FAIL TO RESP" }, { "PD_CD" : 687, "PD_DESC" : "CHILD,OFFENSES AGAINST,UNCLASS" }, { "PD_CD" : 683, "PD_DESC" : "CHILD,ALCOHOL SALE TO" }, { "PD_CD" : 125, "PD_DESC" : "HOMICIDE,NEGLIGENT,UNCLASSIFIE" }, { "PD_CD" : 402, "PD_DESC" : "LARCENY,GRAND BY FALSE PROMISE-NOT IN PERSON CONTACT" }, { "PD_CD" : 447, "PD_DESC" : "GRAND LARCENY-CHECK FROM MAILB" }, { "PD_CD" : 275, "PD_DESC" : "POSTING ADVERTISEMENTS" }, { "PD_CD" : 808, "PD_DESC" : "TAX LAW" }, { "PD_CD" : 395, "PD_DESC" : "ROBBERY,ON BUS/ OR BUS DRIVER" }, { "PD_CD" : 450, "PD_DESC" : "LARCENY, GRAND OF MOPED" }, { "PD_CD" : 662, "PD_DESC" : "MATERIAL              OFFENSIV" }, { "PD_CD" : 185, "PD_DESC" : "KIDNAPPING 2" }, { "PD_CD" : 770, "PD_DESC" : "COMPUTER UNAUTH. USE/TAMPER" }, { "PD_CD" : 595, "PD_DESC" : "UNLAWFUL POSS. WEAPON UPON SCH" }, { "PD_CD" : 618, "PD_DESC" : "LOITERING FOR PROSTITUTION OR" }, { "PD_CD" : 703, "PD_DESC" : "CHECK,BAD" }, { "PD_CD" : 273, "PD_DESC" : "TAMPERING 1,CRIMINAL" }, { "PD_CD" : 197, "PD_DESC" : "COERCION 1" }, { "PD_CD" : 363, "PD_DESC" : "ROBBERY,BAR/RESTAURANT" }, { "PD_CD" : 731, "PD_DESC" : "SALE OF UNAUTHORIZED RECORDING" }, { "PD_CD" : 431, "PD_DESC" : "LARCENY,GRAND FROM PIER, UNATTENDED" }, { "PD_CD" : 725, "PD_DESC" : "FORGERY,M.V. REGISTRATION" }, { "PD_CD" : 674, "PD_DESC" : "EAVESDROPPING" }, { "PD_CD" : 796, "PD_DESC" : "WEAPONS,PROHIBITED USE" }, { "PD_CD" : 422, "PD_DESC" : "LARCENY,GRAND BY OPEN CREDIT CARD (NEW ACCT)" }, { "PD_CD" : 164, "PD_DESC" : "SODOMY 3" }, { "PD_CD" : 594, "PD_DESC" : "OBSCENITY 1" }, { "PD_CD" : 327, "PD_DESC" : "LARCENY,PETIT FROM PARKING MET" }, { "PD_CD" : 345, "PD_DESC" : "LARCENY,PETIT OF BOAT" }, { "PD_CD" : 424, "PD_DESC" : "LARCENY,GRAND BY CREDIT CARD ACCT COMPROMISE-EXISTING ACCT" }, { "PD_CD" : 520, "PD_DESC" : "CONTROLLED SUBSTANCE, SALE 4" }, { "PD_CD" : 293, "PD_DESC" : "CONSPIRACY 2, 1" }, { "PD_CD" : 764, "PD_DESC" : "BAIL JUMPING 1 & 2" }, { "PD_CD" : 524, "PD_DESC" : "CONTROLLED SUBSTANCE,POSSESS.-" }, { "PD_CD" : 233, "PD_DESC" : "BURGLARY,TRUCK NIGHT" }, { "PD_CD" : 826, "PD_DESC" : "GENERAL BUSINESS LAW,TICKET SP" }, { "PD_CD" : 379, "PD_DESC" : "ROBBERY,GAS STATION" }, { "PD_CD" : 375, "PD_DESC" : "ROBBERY,PHARMACY" }, { "PD_CD" : 701, "PD_DESC" : "BRIBERY,COMMERCIAL" }, { "PD_CD" : 531, "PD_DESC" : "DRUG PARAPHERNALIA,   POSSESSE" }, { "PD_CD" : 166, "PD_DESC" : "SODOMY 2" }, { "PD_CD" : 708, "PD_DESC" : "IMPERSONATION 1, POLICE OFFICE" }, { "PD_CD" : 610, "PD_DESC" : "LOITERING,GAMBLING,OTHER" }, { "PD_CD" : 420, "PD_DESC" : "LARCENY,GRAND BY OPEN/COMPROMISE CELL PHONE ACCT" }, { "PD_CD" : 761, "PD_DESC" : "BRIBERY, POLICE OFFICER" }, { "PD_CD" : 591, "PD_DESC" : "OBSCENITY, PERFORMANCE 3" }, { "PD_CD" : 640, "PD_DESC" : "AGGRAVATED HARASSMENT 1" }, { "PD_CD" : 209, "PD_DESC" : "BURGLARS TOOLS,UNCLASSIFIED" }, { "PD_CD" : 513, "PD_DESC" : "POSS METH MANUFACT MATERIAL" }, { "PD_CD" : 323, "PD_DESC" : "LARCENY,PETIT FROM BOAT" }, { "PD_CD" : 537, "PD_DESC" : "GAMBLING 2, PROMOTING, POLICY-" }, { "PD_CD" : 904, "PD_DESC" : "INTOXICATED DRIVING,ALCOHOL" }, { "PD_CD" : 389, "PD_DESC" : "ROBBERY,DWELLING" }, { "PD_CD" : 672, "PD_DESC" : "RIOT 1" }, { "PD_CD" : 647, "PD_DESC" : "FALSE REPORT BOMB" }, { "PD_CD" : 365, "PD_DESC" : "ROBBERY,LIQUOR STORE" }, { "PD_CD" : 730, "PD_DESC" : "MANUFACTURE UNAUTHORIZED RECOR" }, { "PD_CD" : 744, "PD_DESC" : "BAIL JUMPING 3" }, { "PD_CD" : 829, "PD_DESC" : "LABOR LAW,EMPLOYING CHILDREN" }, { "PD_CD" : 211, "PD_DESC" : "BURGLARY,COMMERCIAL,DAY" }, { "PD_CD" : 585, "PD_DESC" : "PROSTITUTION 3,PROMOTING BUSIN" }, { "PD_CD" : 111, "PD_DESC" : "MENACING,PEACE OFFICER" }, { "PD_CD" : 214, "PD_DESC" : "BURGLARY,COMMERCIAL,UNKNOWN TI" }, { "PD_CD" : 706, "PD_DESC" : "RECORDS,FALSIFY-TAMPER" }, { "PD_CD" : 847, "PD_DESC" : "NY STATE LAWS,UNCLASSIFIED FEL" }, { "PD_CD" : 373, "PD_DESC" : "ROBBERY,DOCTOR/DENTIST OFFICE" }, { "PD_CD" : 565, "PD_DESC" : "PROSTITUTION, PATRONIZING 4, 3" }, { "PD_CD" : 646, "PD_DESC" : "DISSEMINATING A FALSE SEX OFFEND" }, { "PD_CD" : 264, "PD_DESC" : "ARSON, MOTOR VEHICLE 1 2 3 & 4" }, { "PD_CD" : 815, "PD_DESC" : "NEGLECT/POISON ANIMAL" }, { "PD_CD" : 507, "PD_DESC" : "CONTROLLED SUBSTANCE, POSSESSI" }, { "PD_CD" : 477, "PD_DESC" : "THEFT OF SERVICES- CABLE TV SE" }, { "PD_CD" : 112, "PD_DESC" : "MENACING 1ST DEGREE (VICT NOT" }, { "PD_CD" : 652, "PD_DESC" : "RIOT 2/INCITING" }, { "PD_CD" : 779, "PD_DESC" : "PUBLIC ADMINISTRATION,UNCLASSI" }, { "PD_CD" : 918, "PD_DESC" : "RECKLESS DRIVING" }, { "PD_CD" : 514, "PD_DESC" : "CONTROLLED SUBSTANCE,SALE 2" }, { "PD_CD" : 193, "PD_DESC" : "CUSTODIAL INTERFERENCE 1" }, { "PD_CD" : 661, "PD_DESC" : "LEWDNESS,PUBLIC" }, { "PD_CD" : 532, "PD_DESC" : "CONTROLLED SUBSTANCE,POSSESS." }, { "PD_CD" : 148, "PD_DESC" : "ABORTIONAL ARTICLES,ISSUING" }, { "PD_CD" : 479, "PD_DESC" : "THEFT,RELATED OFFENSES,UNCLASS" }, { "PD_CD" : 423, "PD_DESC" : "LARCENY,GRAND FROM BOAT, UNATTENDED" }, { "PD_CD" : 566, "PD_DESC" : "MARIJUANA, POSSESSION" }, { "PD_CD" : 442, "PD_DESC" : "LARCENY, GRAND OF AUTO - ATTEM" }, { "PD_CD" : 665, "PD_DESC" : "MAKING TERRORISTIC THREAT" }, { "PD_CD" : 159, "PD_DESC" : "RAPE 1,ATTEMPT" }, { "PD_CD" : 313, "PD_DESC" : "LARCENY,PETIT BY FALSE PROMISE" }, { "PD_CD" : 548, "PD_DESC" : "GAMBLING, DEVICE, POSSESSION" }, { "PD_CD" : 168, "PD_DESC" : "SODOMY 1" }, { "PD_CD" : 727, "PD_DESC" : "FORGERY,PRESCRIPTION" }, { "PD_CD" : 181, "PD_DESC" : "IMPRISONMENT 2,UNLAWFUL" }, { "PD_CD" : 455, "PD_DESC" : "LARCENY,GRAND OF TRUCK" }, { "PD_CD" : 307, "PD_DESC" : "LARCENY,PETIT BY DISHONEST EMP" }, { "PD_CD" : 231, "PD_DESC" : "BURGLARY,TRUCK DAY" }, { "PD_CD" : 489, "PD_DESC" : "THEFT,RELATED OFFENSES,UNCLASS" }, { "PD_CD" : 561, "PD_DESC" : "PROSTITUTION, PATRONIZING 2, 1" }, { "PD_CD" : 335, "PD_DESC" : "LARCENY,PETIT FROM TRUCK" }, { "PD_CD" : 669, "PD_DESC" : "PRIVACY,OFFENSES AGAINST,UNCLA" }, { "PD_CD" : 277, "PD_DESC" : "RECKLESS ENDANGERMENT OF PROPE" }, { "PD_CD" : 461, "PD_DESC" : "UNAUTHORIZED USE VEHICLE 2" }, { "PD_CD" : 366, "PD_DESC" : "ROBBERY,BICYCLE" }, { "PD_CD" : 224, "PD_DESC" : "BURGLARY,RESIDENCE,UNKNOWN TIM" }, { "PD_CD" : 204, "PD_DESC" : "TRESPASS 1,CRIMINAL" }, { "PD_CD" : 512, "PD_DESC" : "CONTROLLED SUBSTANCE,SALE 1" }, { "PD_CD" : 170, "PD_DESC" : "SEXUAL MISCONDUCT,INTERCOURSE" }, { "PD_CD" : 711, "PD_DESC" : "TAMPERING WITH A WITNESS" }, { "PD_CD" : 413, "PD_DESC" : "LARCENY,GRAND BY FALSE PROMISE" }, { "PD_CD" : 451, "PD_DESC" : "LARCENY,GRAND OF MOTORCYCLE" }, { "PD_CD" : 391, "PD_DESC" : "ROBBERY,LICENSED MEDALLION CAB" }, { "PD_CD" : 157, "PD_DESC" : "RAPE 1" }, { "PD_CD" : 183, "PD_DESC" : "IMPRISONMENT 1,UNLAWFUL" }, { "PD_CD" : 649, "PD_DESC" : "FALSE REPORT UNCLASSIFIED" }, { "PD_CD" : 263, "PD_DESC" : "ARSON 2,3,4" }, { "PD_CD" : 510, "PD_DESC" : "CONTROLLED SUBSTANCE, INTENT T" }, { "PD_CD" : 382, "PD_DESC" : "ROBBERY,NECKCHAIN/JEWELRY" }, { "PD_CD" : 234, "PD_DESC" : "BURGLARY,UNKNOWN TIME" }, { "PD_CD" : 907, "PD_DESC" : "IMPAIRED DRIVING,DRUG" }, { "PD_CD" : 406, "PD_DESC" : "LARCENY,GRAND FROM PERSON, BAG OPEN/DIP" }, { "PD_CD" : 887, "PD_DESC" : "GRAFFITI (ADMINISTRATIVE CODE-" }, { "PD_CD" : 739, "PD_DESC" : "FRAUD,UNCLASSIFIED-FELONY" }, { "PD_CD" : 505, "PD_DESC" : "CONTROLLED SUBSTANCE, POSSESSI" }, { "PD_CD" : 695, "PD_DESC" : "CHILD ABANDONMENT" }, { "PD_CD" : 351, "PD_DESC" : "LARCENY,PETIT OF MOTORCYCLE" }, { "PD_CD" : 659, "PD_DESC" : "NUISANCE,CRIMINAL,UNCLASSIFIED" }, { "PD_CD" : 493, "PD_DESC" : "STOLEN PROPERTY-MOTOR VEH 2ND," }, { "PD_CD" : 515, "PD_DESC" : "CONTROLLED SUBSTANCE,SALE 3" }, { "PD_CD" : 502, "PD_DESC" : "CONTROLLED SUBSTANCE,POSSESS." }, { "PD_CD" : 596, "PD_DESC" : "OBSCENE MATERIAL - UNDER 17 YE" }, { "PD_CD" : 589, "PD_DESC" : "PROSTITUTION 1, UNDER 11" }, { "PD_CD" : 478, "PD_DESC" : "THEFT OF SERVICES, UNCLASSIFIE" }, { "PD_CD" : 602, "PD_DESC" : "LOITERING,DEVIATE SEX" }, { "PD_CD" : 265, "PD_DESC" : "MISCHIEF 1,CRIMINAL,EXPLOSIVE" }, { "PD_CD" : 258, "PD_DESC" : "CRIMINAL MISCHIEF 4TH, GRAFFIT" }, { "PD_CD" : 570, "PD_DESC" : "MARIJUANA, SALE 1, 2 & 3" }, { "PD_CD" : 305, "PD_DESC" : "LARCENY,PETIT BY CREDIT CARD U" }, { "PD_CD" : 775, "PD_DESC" : "MONEY LAUNDERING 1 & 2" }, { "PD_CD" : 792, "PD_DESC" : "WEAPONS POSSESSION 1 & 2" }, { "PD_CD" : 434, "PD_DESC" : "LARCENY,GRAND BY OPEN BANK ACCT" }, { "PD_CD" : 221, "PD_DESC" : "BURGLARY,RESIDENCE,DAY" }, { "PD_CD" : 724, "PD_DESC" : "FORGERY-ILLEGAL POSSESSION,VEH" }, { "PD_CD" : 417, "PD_DESC" : "LARCENY,GRAND FROM PERSON,PURS" }, { "PD_CD" : 205, "PD_DESC" : "TRESPASS 2, CRIMINAL" }, { "PD_CD" : 853, "PD_DESC" : "CIGARETTE,NO TAX STAMP,POSSESS" }, { "PD_CD" : 175, "PD_DESC" : "SEXUAL ABUSE 3,2" }, { "PD_CD" : 694, "PD_DESC" : "INCEST" }, { "PD_CD" : 421, "PD_DESC" : "LARCENY,GRAND FROM VEHICLE/MOTORCYCLE" }, { "PD_CD" : 772, "PD_DESC" : "COMPUTER TAMPER/TRESSPASS" }, { "PD_CD" : 849, "PD_DESC" : "NY STATE LAWS,UNCLASSIFIED VIO" }, { "PD_CD" : 248, "PD_DESC" : "RADIO DEVICES,UNLAWFUL POSSESS" }, { "PD_CD" : 303, "PD_DESC" : "LARCENY,PETIT BY CHECK USE" }, { "PD_CD" : 462, "PD_DESC" : "UNAUTHORIZED USE VEHICLE 3" }, { "PD_CD" : 476, "PD_DESC" : "CREDIT CARD,UNLAWFUL USE OF" }, { "PD_CD" : 361, "PD_DESC" : "ROBBERY,BANK" }, { "PD_CD" : 643, "PD_DESC" : "ASSEMBLY,UNLAWFUL" }, { "PD_CD" : 509, "PD_DESC" : "POSSESSION HYPODERMIC INSTRUME" }, { "PD_CD" : 759, "PD_DESC" : "PUBLIC ADMINISTATION,UNCLASS M" }, { "PD_CD" : 821, "PD_DESC" : "EDUCATION LAW,UNCLASSIFIED" }, { "PD_CD" : 433, "PD_DESC" : "LARCENY,GRAND FROM STORE-SHOPL" }, { "PD_CD" : 174, "PD_DESC" : "SEXUAL MISCONDUCT,DEVIATE" }, { "PD_CD" : 756, "PD_DESC" : "ABSCONDING FROM WORK RELEASE 2" }, { "PD_CD" : 494, "PD_DESC" : "STOLEN PROPERTY 2,1,POSSESSION" }, { "PD_CD" : 443, "PD_DESC" : "LARCENY,GRAND OF BICYCLE" }, { "PD_CD" : 357, "PD_DESC" : "LARCENY,PETIT OF VEHICLE ACCES" }, { "PD_CD" : 347, "PD_DESC" : "PETIT LARCENY-CHECK FROM MAILB" }, { "PD_CD" : 439, "PD_DESC" : "LARCENY,GRAND FROM OPEN AREAS, UNATTENDED" }, { "PD_CD" : 349, "PD_DESC" : "LARCENY,PETIT OF LICENSE PLATE" }, { "PD_CD" : 793, "PD_DESC" : "WEAPONS POSSESSION 3" }, { "PD_CD" : 343, "PD_DESC" : "LARCENY,PETIT OF BICYCLE" }, { "PD_CD" : 419, "PD_DESC" : "LARCENY,GRAND FROM PERSON,UNCL" }, { "PD_CD" : 385, "PD_DESC" : "ROBBERY, PAYROLL" }, { "PD_CD" : 350, "PD_DESC" : "LARCENY, PETIT OF MOPED" }, { "PD_CD" : 723, "PD_DESC" : "FORGERY,DRIVERS LICENSE" }, { "PD_CD" : 892, "PD_DESC" : "PARK R&R,GAMBLING" }, { "PD_CD" : 568, "PD_DESC" : "MARIJUANA, POSSESSION 1, 2 & 3" }, { "PD_CD" : 814, "PD_DESC" : "ATTEND/SPECTATOR ANIMAL FIGHTING" }, { "PD_CD" : 729, "PD_DESC" : "FORGERY,ETC.,UNCLASSIFIED-FELO" }, { "PD_CD" : 490, "PD_DESC" : "STOLEN PROPERTY 3,POSSESSION" }, { "PD_CD" : 377, "PD_DESC" : "ROBBERY,BODEGA/CONVENIENCE STORE" }, { "PD_CD" : 848, "PD_DESC" : "NY STATE LAWS,UNCLASSIFIED MIS" }, { "PD_CD" : 890, "PD_DESC" : "N.Y.C. TRANSIT AUTH. R&R" }, { "PD_CD" : 398, "PD_DESC" : "ROBBERY,PUBLIC PLACE INSIDE" }, { "PD_CD" : 329, "PD_DESC" : "LARCENY,PETIT FROM COIN MACHIN" }, { "PD_CD" : 416, "PD_DESC" : "LARCENY,GRAND FROM NIGHT CLUB, UNATTENDED" }, { "PD_CD" : 827, "PD_DESC" : "GENERAL BUSINESS LAW / UNCLASSIFIED" }, { "PD_CD" : 155, "PD_DESC" : "RAPE 2" }, { "PD_CD" : 782, "PD_DESC" : "WEAPONS, POSSESSION, ETC" }, { "PD_CD" : 501, "PD_DESC" : "CONTROLLED SUBSTANCE,POSSESS." }, { "PD_CD" : 405, "PD_DESC" : "LARCENY,GRAND BY THEFT OF CREDIT CARD" }, { "PD_CD" : 223, "PD_DESC" : "BURGLARY,RESIDENCE,NIGHT" }, { "PD_CD" : 874, "PD_DESC" : "PEDDLING,UNLAWFUL" }, { "PD_CD" : 457, "PD_DESC" : "LARCENY,GRAND OF VEHICULAR/MOTORCYCLE ACCESSORIES" }, { "PD_CD" : 441, "PD_DESC" : "LARCENY,GRAND OF AUTO" }, { "PD_CD" : 243, "PD_DESC" : "BURGLARY,UNCLASSIFIED,NIGHT" }, { "PD_CD" : 333, "PD_DESC" : "LARCENY,PETIT FROM STORE-SHOPL" }, { "PD_CD" : 748, "PD_DESC" : "CONTEMPT,CRIMINAL" }, { "PD_CD" : 106, "PD_DESC" : "ASSAULT POLICE/PEACE OFFICER" }, { "PD_CD" : 403, "PD_DESC" : "LARCENY,GRAND BY BANK ACCT COMPROMISE-REPRODUCED CHECK" }, { "PD_CD" : 392, "PD_DESC" : "ROBBERY,UNLICENSED FOR HIRE VEHICLE" }, { "PD_CD" : 338, "PD_DESC" : "LARCENY,PETIT FROM BUILDING,UN" }, { "PD_CD" : 380, "PD_DESC" : "ROBBERY,CAR JACKING" }, { "PD_CD" : 500, "PD_DESC" : "CONTROLLED SUBSTANCE,POSSESS." },
+
+{ "PD_CD" : null, "PD_DESC" : null },
+
+{ "PD_CD" : 877, "PD_DESC" : "UNLAWFUL DISCLOSURE OF AN INTIMATE IMAGE" }, { "PD_CD" : 809, "PD_DESC" : "TAX LAW" }, { "PD_CD" : 184, "PD_DESC" : "LABOR TRAFFICKING" }, { "PD_CD" : 862, "PD_DESC" : "ALCOHOLIC BEVERAGES,PUBLIC CON" }, { "PD_CD" : 818, "PD_DESC" : "ABANDON ANIMAL" }, { "PD_CD" : 344, "PD_DESC" : "PETIT LARCENY OF ANIMAL" }, { "PD_CD" : 267, "PD_DESC" : "MISCHIEF, CRIMINAL 3 & 2, OF M" }, { "PD_CD" : 321, "PD_DESC" : "LARCENY,PETIT FROM AUTO" }, { "PD_CD" : 113, "PD_DESC" : "MENACING,UNCLASSIFIED" }, { "PD_CD" : 117, "PD_DESC" : "RECKLESS ENDANGERMENT 1" }, { "PD_CD" : 627, "PD_DESC" : "DIS. CON.,AGGRAVATED" }, { "PD_CD" : 916, "PD_DESC" : "LEAVING SCENE-ACCIDENT-PERSONA" }, { "PD_CD" : 179, "PD_DESC" : "AGGRAVATED SEXUAL ASBUSE" }, { "PD_CD" : 644, "PD_DESC" : "FALSE REPORT 1,FIRE" }, { "PD_CD" : 259, "PD_DESC" : "CRIMINAL MISCHIEF,UNCLASSIFIED 4" }, { "PD_CD" : 203, "PD_DESC" : "TRESPASS 3, CRIMINAL" }, { "PD_CD" : 271, "PD_DESC" : "TAMPERING 3,2, CRIMINAL" }, { "PD_CD" : 384, "PD_DESC" : "ROBBERY,POCKETBOOK/CARRIED BAG" }, { "PD_CD" : 198, "PD_DESC" : "CRIMINAL CONTEMPT 1" }, { "PD_CD" : 297, "PD_DESC" : "FACILITATION 4, CRIMINAL" }, { "PD_CD" : 254, "PD_DESC" : "MISCHIEF, CRIMINAL 4, OF MOTOR" }, { "PD_CD" : 522, "PD_DESC" : "USE CHILD TO COMMIT CONT SUB OFF" }, { "PD_CD" : 201, "PD_DESC" : "TRESPASS 4,CRIMINAL SUB 2" }, { "PD_CD" : 339, "PD_DESC" : "LARCENY,PETIT FROM OPEN AREAS," }, { "PD_CD" : 798, "PD_DESC" : "FIREARMS LICENSING LAWS" }, { "PD_CD" : 396, "PD_DESC" : "ROBBERY,BEGIN AS SHOPLIFTING" }, { "PD_CD" : 569, "PD_DESC" : "MARIJUANA, SALE 4 & 5" }, { "PD_CD" : 637, "PD_DESC" : "HARASSMENT,SUBD 1,CIVILIAN" }, { "PD_CD" : 410, "PD_DESC" : "LARCENY,GRAND FROM RETAIL STORE, UNATTENDED" }, { "PD_CD" : 681, "PD_DESC" : "CHILD, ENDANGERING WELFARE" }, { "PD_CD" : 788, "PD_DESC" : "FIREWORKS, SALE" }, { "PD_CD" : 256, "PD_DESC" : "MISCHIEF, CRIMINAL 4, BY FIRE" }, { "PD_CD" : 360, "PD_DESC" : "ROBBERY,ATM LOCATION" }, { "PD_CD" : 191, "PD_DESC" : "CUSTODIAL INTERFERENCE 2" }, { "PD_CD" : 750, "PD_DESC" : "RESISTING ARREST" }, { "PD_CD" : 177, "PD_DESC" : "SEXUAL ABUSE" }, { "PD_CD" : 784, "PD_DESC" : "WEAPONS,MFR,TRANSPORT,ETC." }, { "PD_CD" : 762, "PD_DESC" : "ESCAPE 2,1" }, { "PD_CD" : 269, "PD_DESC" : "MISCHIEF,CRIMINAL,    UNCL 2ND" }, { "PD_CD" : 922, "PD_DESC" : "TRAFFIC,UNCLASSIFIED MISDEMEAN" }, { "PD_CD" : 412, "PD_DESC" : "LARCENY,GRAND FROM RESIDENCE, UNATTENDED" }, { "PD_CD" : 388, "PD_DESC" : "ROBBERY,RESIDENTIAL COMMON AREA" }, { "PD_CD" : 401, "PD_DESC" : "LARCENY,GRAND BY ACQUIRING LOS" }, { "PD_CD" : 975, "PD_DESC" : "ENVIRONMENTAL CONTROL BOARD" }, { "PD_CD" : 878, "PD_DESC" : "ADM.CODE,UNCLASSIFIED MISDEMEA" }, { "PD_CD" : 341, "PD_DESC" : "LARCENY,PETIT OF AUTO" }, { "PD_CD" : 521, "PD_DESC" : "CONTROLLED SUBSTANCE, SALE 5" }, { "PD_CD" : 719, "PD_DESC" : "FRAUD,UNCLASSIFIED-MISDEMEANOR" }, { "PD_CD" : 760, "PD_DESC" : "BRIBERY,PUBLIC ADMINISTRATION" }, { "PD_CD" : 153, "PD_DESC" : "RAPE 3" }, { "PD_CD" : 905, "PD_DESC" : "INTOXICATED DRIVING,ALCOHOL" }, { "PD_CD" : 523, "PD_DESC" : "SALE SCHOOL GROUNDS" }, { "PD_CD" : 749, "PD_DESC" : "VIOLATION OF ORDER OF PROTECTI" }, { "PD_CD" : 108, "PD_DESC" : "ASSAULT OTHER PUBLIC SERVICE EMPLOYEE" }, { "PD_CD" : 511, "PD_DESC" : "CONTROLLED SUBSTANCE, POSSESSI" }, { "PD_CD" : 241, "PD_DESC" : "BURGLARY,UNCLASSIFIED,DAY" }, { "PD_CD" : 797, "PD_DESC" : "WOUNDS,REPORTING OF" }, { "PD_CD" : 707, "PD_DESC" : "IMPERSONATION 2, PUBLIC SERVAN" }, { "PD_CD" : 121, "PD_DESC" : "HOMICIDE,NEGLIGENT,VEHICLE" }, { "PD_CD" : 638, "PD_DESC" : "HARASSMENT,SUBD 3,4,5" }, { "PD_CD" : 394, "PD_DESC" : "ROBBERY,LICENSED FOR HIRE VEHICLE" }, { "PD_CD" : 397, "PD_DESC" : "ROBBERY,OPEN AREA UNCLASSIFIED" }, { "PD_CD" : 415, "PD_DESC" : "LARCENY,GRAND FROM PERSON,PICK" }, { "PD_CD" : 715, "PD_DESC" : "POSSESSION ANTI-SECURITY ITEM" }, { "PD_CD" : 285, "PD_DESC" : "SOLICITATION 3,2,1, CRIMINAL" }, { "PD_CD" : 503, "PD_DESC" : "CONTROLLED SUBSTANCE,INTENT TO" }, { "PD_CD" : 407, "PD_DESC" : "LARCENY,GRAND BY DISHONEST EMP" }, { "PD_CD" : 785, "PD_DESC" : "WEAPONS DISPOSITION OF" }, { "PD_CD" : 693, "PD_DESC" : "INCEST" }, { "PD_CD" : 399, "PD_DESC" : "ROBBERY,COMMERCIAL UNCLASSIFIED" }, { "PD_CD" : 718, "PD_DESC" : "FRAUD,UNCLASSIFIED-MISDEMEANOR" }, { "PD_CD" : 213, "PD_DESC" : "BURGLARY,COMMERCIAL,NIGHT" }, { "PD_CD" : 101, "PD_DESC" : "ASSAULT 3" }, { "PD_CD" : 466, "PD_DESC" : "ACCOSTING,FRAUDULENT" }, { "PD_CD" : 705, "PD_DESC" : "FORGERY,ETC.-MISD." }, { "PD_CD" : 367, "PD_DESC" : "ROBBERY, CHAIN STORE" }, { "PD_CD" : 301, "PD_DESC" : "LARCENY,PETIT BY ACQUIRING LOS" }, { "PD_CD" : 266, "PD_DESC" : "MISCHIEF, CRIMINAL 3&2, BY FIR" }, { "PD_CD" : 491, "PD_DESC" : "STOLEN PROP-MOTOR VEHICLE 3RD," }, { "PD_CD" : 115, "PD_DESC" : "RECKLESS ENDANGERMENT 2" }, { "PD_CD" : 639, "PD_DESC" : "AGGRAVATED HARASSMENT 2" }, { "PD_CD" : 508, "PD_DESC" : "DRUG PARAPHERNALIA,   POSSESSE" }, { "PD_CD" : 733, "PD_DESC" : "ENTERPRISE CORRUPTION" }, { "PD_CD" : 544, "PD_DESC" : "GAMBLING 2,PROMOTING,UNCLASSIF" }, { "PD_CD" : 533, "PD_DESC" : "GAMBLING 2, PROMOTING, BOOKMAK" }, { "PD_CD" : 414, "PD_DESC" : "LARCENY,GRAND PERSON,NECK CHAI" }, { "PD_CD" : 438, "PD_DESC" : "LARCENY,GRAND FROM BUILDING (NON-RESIDENCE) UNATTENDED" }, { "PD_CD" : 186, "PD_DESC" : "LURING A CHILD" }, { "PD_CD" : 445, "PD_DESC" : "LARCENY,GRAND OF BOAT" }, { "PD_CD" : 567, "PD_DESC" : "MARIJUANA, POSSESSION 4 & 5" }, { "PD_CD" : 109, "PD_DESC" : "ASSAULT 2,1,UNCLASSIFIED" }, { "PD_CD" : 371, "PD_DESC" : "ROBBERY,CHECK CASHING BUSINESS" }
+
+
+create as an array in python
+arr = [ the entire contents above but remember to remove the null entry]
+then can access as
+	print(f"{arr[0]}")
+			{'PD_CD': 819, 'PD_DESC': 'EDUCATION LAW,STREET TRADE'}
+	print(f"{arr[0]['PD_CD']}  --  {arr[0]['PD_DESC']}")
+			819  --  EDUCATION LAW,STREET TRADE
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+pedestrian info - Bi-Annual Pedestrian Counts
+
+D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYCPedestrianDataPrepared-20190905-clean5.csv
+
+	rename collection
+db.adminCommand( { renameCollection: "db1story.coll2pedesdata", to: "db1story.coll2pedesdataWRONG" } )
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+		loading ALL the data into Mongo 7524 records (11 years x 6 per year x 114 per set = 11 x 6 x 114 -- has total 7524 rows
+		
+python dataInsertMongoNYPedestrian5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/NYCPedestrianDataPrepared-20190905-clean5.csv" -1 0 db1story coll2pedesdata  LOG_dataInsertMongoNYPedestrian5-loadAll.log
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+NYC pedestrian data			has 7503 (7524 - 21 rows with missing counts) rows loaded into mongo    from the csv file  which has 7503
+
+> db.coll2pedesdata.find().limit(1).skip(1234).pretty()
+{
+        "_id" : ObjectId("5d75ca6c1a67b8f1e9b6ce22"),
+        "year" : 2008,
+        "month" : 9,
+        "flagWkday1Sat0" : 1,
+        "flagAmPmMd" : "p",
+        "count" : 147,
+        "loc" : 111,
+        "boroughBridgeName" : "Harlem River Bridges",
+        "flagBroroughBridge" : "br",
+        "onStreet" : "Third Avenue Bridge",
+        "from" : "midpoint",
+        "to" : null
+}
+>
+
+> db.coll2pedesdata.find({"count": "-"}).count()
+0
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+ports entry info - Counts
+
+D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4AnalysisPortsDataPrepared-20190906-clean3.csv
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+		loading ALL the data into Mongo 396 data records (11 years x 3 cities per year x 12 per city = 11 x 3 x 12 -- has total 396 rows
+		
+python dataInsertMongoNYPortsdata5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/PortsDataPrepared-20190906-clean3.csv" -1 0 db1story coll3portsdata LOG_dataInsertMongoNYPortsdata5-loadAll.log
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Ports data			has 396 rows loaded into mongo    from the csv file  which has 397 including header row
+
+>
+> db.coll3portsdata.count()
+396
+> db.coll3portsdata.find().sort({$natural: -1}).limit(1).pretty()
+{
+        "_id" : ObjectId("5d724ad67da6b6f57cb77ac6"),
+        "portName" : "los angeles",
+        "year" : 2017,
+        "month" : 12,
+        "count" : 364432
+}
+> db.coll3portsdata.find().limit(1).pretty()
+{
+        "_id" : ObjectId("5d724ad67da6b6f57cb7793b"),
+        "portName" : "new york",
+        "year" : 2007,
+        "month" : 1,
+        "count" : 207004
+}
+>
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+		careful about the borough names
+db.coll1nyccrimedata.distinct("BORO_NM")			-- crime collection
+[ "QUEENS", "BRONX", "BROOKLYN", "STATEN ISLAND", "MANHATTAN", null ]
+
+db.coll2pedesdata.distinct("boroughBridgeName", {"flagBroroughBridge": "bo"})			-- pedestrian collection
+[ "Bronx", "Brooklyn", "Manhattan", "Queens", "Staten Island" ]
+
+
+		columns for the final consolidated data file
+
+Tdate			--  date from the pedestrian file
+sumCrime		--	match Tdate and Tdate + 1
+sumPorts		--  match Tdate and Tdate - 1
+
+
+
+		outputCSVfile fields
+Tdate, boroName,
+countPedesT,
+
+	maybe should not be 3 different sets but a different row for each type like
+portName='NY' or 'Newark' or 'LA' or 'NYandNewark', countPortT, countPortTminus1, sumPortTandTminus1,
+	xxx
+portNY='NY', countPortNYT, countPortNYTminus1, sumPortNYTandTminus1,
+portNewark='Newark', countPortNewarkT, countPortNewarkTminus1, sumPortNewarkTandTminus1,
+portLA='LA', countPortLAT, countPortLATminus1, sumPortLATandTminus1,
+	xxx
+
+crimeKY_CD, sumCrimeTKY_CD, sumCrimeTplus1KY_CD, sumCrimeTandTplus1KY_CD,
+crimeOFNS_DESC, sumCrimeTOFNS_DESC, sumCrimeTplus1OFNS_DESC, sumCrimeTandTplus1OFNS_DESC,
+crimePD_CD, sumCrimeTPD_CD, sumCrimeTplus1PD_CD, sumCrimeTandTplus1PD_CD,
+crimePD_DESC, sumCrimeTPD_DESC, sumCrimeTplus1PD_DESC, sumCrimeTandTplus1PD_DESC,
+crimePREM_TYPE_DESC, sumCrimeTPREM_TYPE_DESC, sumCrimeTplus1PREM_TYPE_DESC, sumCrimeTandTplus1PREM_TYPE_DESC,
+crimeLAW_CAT_CD, sumCrimeTLAW_CAT_CD, sumCrimeTplus1LAW_CAT_CD, sumCrimeTandTplus1LAW_CAT_CD,
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+		LOADING ALL THE DATA INTO DATABASE 	2   on 20190910
+
+	load crime
+
+	--- done
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYPD_Complaint_Data_Historic.csv" 1000000 0 db2story coll21nyccrimedata LOG_dataInsertMongoNYCrime5-nr1000k-nsk0k-again.log
+
+	--- done
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYPD_Complaint_Data_Historic.csv" 1000000 1000000 db2story coll21nyccrimedata LOG_dataInsertMongoNYCrime5-nr1000k-nsk1000k-again.log
+
+	--- done
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYPD_Complaint_Data_Historic.csv" 1000000 2000000 db2story coll21nyccrimedata LOG_dataInsertMongoNYCrime5-nr1000k-nsk2000k-again.log
+
+	--- done
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYPD_Complaint_Data_Historic.csv" 1000000 3000000 db2story coll21nyccrimedata LOG_dataInsertMongoNYCrime5-nr1000k-nsk3000k-again.log
+
+	--- done
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYPD_Complaint_Data_Historic.csv" 1000000 4000000 db2story coll21nyccrimedata LOG_dataInsertMongoNYCrime5-nr1000k-nsk4000k-again.log
+
+	--- done
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYPD_Complaint_Data_Historic.csv" 1000000 5000000 db2story coll21nyccrimedata LOG_dataInsertMongoNYCrime5-nr1000k-nsk5000k-again.log
+
+
+python dataInsertMongoNYCrime5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYPD_Complaint_Data_Historic.csv" 1000000 6000000 db2story coll21nyccrimedata LOG_dataInsertMongoNYCrime5-nr1000k-nsk6000k-again.log
+
+
+
+	load pedes	--- done
+python dataInsertMongoNYPedestrian5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/NYCPedestrianDataPrepared-20190909-clean6.csv" -1 0 db2story coll22pedesdata  LOG_dataInsertMongoNYPedestrian5-loadAll-again.log
+
+
+
+	load ports	--- done
+python dataInsertMongoNYPortsdata5.py "D:/EverythingD/01SRH-BDBA Acads/Blk7-DataStoryTelling/Data4Analysis/finalDataSourcesUsed4MongoAGAIN/PortsDataPrepared-20190906-clean3.csv" -1 0 db2story coll23portsdata LOG_dataInsertMongoNYPortsdata5-loadAll-again.log
+
+
+	running analysis script				--- has no PD_CD and PD_DESC  , thus only KY_CD OFNS_DESC PREM_TYP_DESC LAW_CAT_CD
+python analysisDataStory11SHORTLists.py
+
+
+xxx
+year, month, boroName,			-- 3 * 1 = 3
+countPedes,			-- 1 * 1 = 1
+
+portNY='NY', countPortNY			-- 2 * 1 = 2
+portNewark='Newark', countPortNewark			-- 2 * 1 = 2
+portLA='LA', countPortLA			-- 2 * 1 = 2
+
+crimeTotal,			-- 1 * 1 = 1
+
+crimeKY_CD1, sumCrimeKY_CD1 .... 73 more   total 74 KY_CDs			-- 2 * 74 = 148
+crimeOFNS_DESC1, sumCrimeOFNS_DESC1 .... 69 more   total 70 OFNS_DESCs			-- 2 * 70 = 140
+crimePREM_TYPE_DESC1, sumCrimePREM_TYPE_DESC1 .... 71 more   total 72 PREM_TYPE_DESCs			-- 2 * 72 = 144
+crimeLAW_CAT_CD1, sumCrimeLAW_CAT_CD1 .... 2 more   total 3 LAW_CAT_CDs			-- 2 * 3 = 6
+
+			grand total of     449 columns should be in output file
+
+FIELDNAMES = [ 'year' , 'month' , 'boroName' , 'countPedes' , 'portNY' , 'countPortNY' , 'portNewark' , 'countPortNewark' , 'portLA' , 'countPortLA' , 'crimeTotal' , 'crimeKY_CD1', 'sumCrimeKY_CD1', 'crimeKY_CD2', 'sumCrimeKY_CD2', 'crimeKY_CD3', 'sumCrimeKY_CD3', 'crimeKY_CD4', 'sumCrimeKY_CD4', 'crimeKY_CD5', 'sumCrimeKY_CD5', 'crimeKY_CD6', 'sumCrimeKY_CD6', 'crimeKY_CD7', 'sumCrimeKY_CD7', 'crimeKY_CD8', 'sumCrimeKY_CD8', 'crimeKY_CD9', 'sumCrimeKY_CD9', 'crimeKY_CD10', 'sumCrimeKY_CD10', 'crimeKY_CD11', 'sumCrimeKY_CD11', 'crimeKY_CD12', 'sumCrimeKY_CD12', 'crimeKY_CD13', 'sumCrimeKY_CD13', 'crimeKY_CD14', 'sumCrimeKY_CD14', 'crimeKY_CD15', 'sumCrimeKY_CD15', 'crimeKY_CD16', 'sumCrimeKY_CD16', 'crimeKY_CD17', 'sumCrimeKY_CD17', 'crimeKY_CD18', 'sumCrimeKY_CD18', 'crimeKY_CD19', 'sumCrimeKY_CD19', 'crimeKY_CD20', 'sumCrimeKY_CD20', 'crimeKY_CD21', 'sumCrimeKY_CD21', 'crimeKY_CD22', 'sumCrimeKY_CD22', 'crimeKY_CD23', 'sumCrimeKY_CD23', 'crimeKY_CD24', 'sumCrimeKY_CD24', 'crimeKY_CD25', 'sumCrimeKY_CD25', 'crimeKY_CD26', 'sumCrimeKY_CD26', 'crimeKY_CD27', 'sumCrimeKY_CD27', 'crimeKY_CD28', 'sumCrimeKY_CD28', 'crimeKY_CD29', 'sumCrimeKY_CD29', 'crimeKY_CD30', 'sumCrimeKY_CD30', 'crimeKY_CD31', 'sumCrimeKY_CD31', 'crimeKY_CD32', 'sumCrimeKY_CD32', 'crimeKY_CD33', 'sumCrimeKY_CD33', 'crimeKY_CD34', 'sumCrimeKY_CD34', 'crimeKY_CD35', 'sumCrimeKY_CD35', 'crimeKY_CD36', 'sumCrimeKY_CD36', 'crimeKY_CD37', 'sumCrimeKY_CD37', 'crimeKY_CD38', 'sumCrimeKY_CD38', 'crimeKY_CD39', 'sumCrimeKY_CD39', 'crimeKY_CD40', 'sumCrimeKY_CD40', 'crimeKY_CD41', 'sumCrimeKY_CD41', 'crimeKY_CD42', 'sumCrimeKY_CD42', 'crimeKY_CD43', 'sumCrimeKY_CD43', 'crimeKY_CD44', 'sumCrimeKY_CD44', 'crimeKY_CD45', 'sumCrimeKY_CD45', 'crimeKY_CD46', 'sumCrimeKY_CD46', 'crimeKY_CD47', 'sumCrimeKY_CD47', 'crimeKY_CD48', 'sumCrimeKY_CD48', 'crimeKY_CD49', 'sumCrimeKY_CD49', 'crimeKY_CD50', 'sumCrimeKY_CD50', 'crimeKY_CD51', 'sumCrimeKY_CD51', 'crimeKY_CD52', 'sumCrimeKY_CD52', 'crimeKY_CD53', 'sumCrimeKY_CD53', 'crimeKY_CD54', 'sumCrimeKY_CD54', 'crimeKY_CD55', 'sumCrimeKY_CD55', 'crimeKY_CD56', 'sumCrimeKY_CD56', 'crimeKY_CD57', 'sumCrimeKY_CD57', 'crimeKY_CD58', 'sumCrimeKY_CD58', 'crimeKY_CD59', 'sumCrimeKY_CD59', 'crimeKY_CD60', 'sumCrimeKY_CD60', 'crimeKY_CD61', 'sumCrimeKY_CD61', 'crimeKY_CD62', 'sumCrimeKY_CD62', 'crimeKY_CD63', 'sumCrimeKY_CD63', 'crimeKY_CD64', 'sumCrimeKY_CD64', 'crimeKY_CD65', 'sumCrimeKY_CD65', 'crimeKY_CD66', 'sumCrimeKY_CD66', 'crimeKY_CD67', 'sumCrimeKY_CD67', 'crimeKY_CD68', 'sumCrimeKY_CD68', 'crimeKY_CD69', 'sumCrimeKY_CD69', 'crimeKY_CD70', 'sumCrimeKY_CD70', 'crimeKY_CD71', 'sumCrimeKY_CD71', 'crimeKY_CD72', 'sumCrimeKY_CD72', 'crimeKY_CD73', 'sumCrimeKY_CD73', 'crimeKY_CD74', 'sumCrimeKY_CD74', 'crimeOFNS_DESC1', 'sumCrimeOFNS_DESC1', 'crimeOFNS_DESC2', 'sumCrimeOFNS_DESC2', 'crimeOFNS_DESC3', 'sumCrimeOFNS_DESC3', 'crimeOFNS_DESC4', 'sumCrimeOFNS_DESC4', 'crimeOFNS_DESC5', 'sumCrimeOFNS_DESC5', 'crimeOFNS_DESC6', 'sumCrimeOFNS_DESC6', 'crimeOFNS_DESC7', 'sumCrimeOFNS_DESC7', 'crimeOFNS_DESC8', 'sumCrimeOFNS_DESC8', 'crimeOFNS_DESC9', 'sumCrimeOFNS_DESC9', 'crimeOFNS_DESC10', 'sumCrimeOFNS_DESC10', 'crimeOFNS_DESC11', 'sumCrimeOFNS_DESC11', 'crimeOFNS_DESC12', 'sumCrimeOFNS_DESC12', 'crimeOFNS_DESC13', 'sumCrimeOFNS_DESC13', 'crimeOFNS_DESC14', 'sumCrimeOFNS_DESC14', 'crimeOFNS_DESC15', 'sumCrimeOFNS_DESC15', 'crimeOFNS_DESC16', 'sumCrimeOFNS_DESC16', 'crimeOFNS_DESC17', 'sumCrimeOFNS_DESC17', 'crimeOFNS_DESC18', 'sumCrimeOFNS_DESC18', 'crimeOFNS_DESC19', 'sumCrimeOFNS_DESC19', 'crimeOFNS_DESC20', 'sumCrimeOFNS_DESC20', 'crimeOFNS_DESC21', 'sumCrimeOFNS_DESC21', 'crimeOFNS_DESC22', 'sumCrimeOFNS_DESC22', 'crimeOFNS_DESC23', 'sumCrimeOFNS_DESC23', 'crimeOFNS_DESC24', 'sumCrimeOFNS_DESC24', 'crimeOFNS_DESC25', 'sumCrimeOFNS_DESC25', 'crimeOFNS_DESC26', 'sumCrimeOFNS_DESC26', 'crimeOFNS_DESC27', 'sumCrimeOFNS_DESC27', 'crimeOFNS_DESC28', 'sumCrimeOFNS_DESC28', 'crimeOFNS_DESC29', 'sumCrimeOFNS_DESC29', 'crimeOFNS_DESC30', 'sumCrimeOFNS_DESC30', 'crimeOFNS_DESC31', 'sumCrimeOFNS_DESC31', 'crimeOFNS_DESC32', 'sumCrimeOFNS_DESC32', 'crimeOFNS_DESC33', 'sumCrimeOFNS_DESC33', 'crimeOFNS_DESC34', 'sumCrimeOFNS_DESC34', 'crimeOFNS_DESC35', 'sumCrimeOFNS_DESC35', 'crimeOFNS_DESC36', 'sumCrimeOFNS_DESC36', 'crimeOFNS_DESC37', 'sumCrimeOFNS_DESC37', 'crimeOFNS_DESC38', 'sumCrimeOFNS_DESC38', 'crimeOFNS_DESC39', 'sumCrimeOFNS_DESC39', 'crimeOFNS_DESC40', 'sumCrimeOFNS_DESC40', 'crimeOFNS_DESC41', 'sumCrimeOFNS_DESC41', 'crimeOFNS_DESC42', 'sumCrimeOFNS_DESC42', 'crimeOFNS_DESC43', 'sumCrimeOFNS_DESC43', 'crimeOFNS_DESC44', 'sumCrimeOFNS_DESC44', 'crimeOFNS_DESC45', 'sumCrimeOFNS_DESC45', 'crimeOFNS_DESC46', 'sumCrimeOFNS_DESC46', 'crimeOFNS_DESC47', 'sumCrimeOFNS_DESC47', 'crimeOFNS_DESC48', 'sumCrimeOFNS_DESC48', 'crimeOFNS_DESC49', 'sumCrimeOFNS_DESC49', 'crimeOFNS_DESC50', 'sumCrimeOFNS_DESC50', 'crimeOFNS_DESC51', 'sumCrimeOFNS_DESC51', 'crimeOFNS_DESC52', 'sumCrimeOFNS_DESC52', 'crimeOFNS_DESC53', 'sumCrimeOFNS_DESC53', 'crimeOFNS_DESC54', 'sumCrimeOFNS_DESC54', 'crimeOFNS_DESC55', 'sumCrimeOFNS_DESC55', 'crimeOFNS_DESC56', 'sumCrimeOFNS_DESC56', 'crimeOFNS_DESC57', 'sumCrimeOFNS_DESC57', 'crimeOFNS_DESC58', 'sumCrimeOFNS_DESC58', 'crimeOFNS_DESC59', 'sumCrimeOFNS_DESC59', 'crimeOFNS_DESC60', 'sumCrimeOFNS_DESC60', 'crimeOFNS_DESC61', 'sumCrimeOFNS_DESC61', 'crimeOFNS_DESC62', 'sumCrimeOFNS_DESC62', 'crimeOFNS_DESC63', 'sumCrimeOFNS_DESC63', 'crimeOFNS_DESC64', 'sumCrimeOFNS_DESC64', 'crimeOFNS_DESC65', 'sumCrimeOFNS_DESC65', 'crimeOFNS_DESC66', 'sumCrimeOFNS_DESC66', 'crimeOFNS_DESC67', 'sumCrimeOFNS_DESC67', 'crimeOFNS_DESC68', 'sumCrimeOFNS_DESC68', 'crimeOFNS_DESC69', 'sumCrimeOFNS_DESC69', 'crimeOFNS_DESC70', 'sumCrimeOFNS_DESC70', 'crimePREM_TYPE_DESC1', 'sumCrimePREM_TYPE_DESC1', 'crimePREM_TYPE_DESC2', 'sumCrimePREM_TYPE_DESC2', 'crimePREM_TYPE_DESC3', 'sumCrimePREM_TYPE_DESC3', 'crimePREM_TYPE_DESC4', 'sumCrimePREM_TYPE_DESC4', 'crimePREM_TYPE_DESC5', 'sumCrimePREM_TYPE_DESC5', 'crimePREM_TYPE_DESC6', 'sumCrimePREM_TYPE_DESC6', 'crimePREM_TYPE_DESC7', 'sumCrimePREM_TYPE_DESC7', 'crimePREM_TYPE_DESC8', 'sumCrimePREM_TYPE_DESC8', 'crimePREM_TYPE_DESC9', 'sumCrimePREM_TYPE_DESC9', 'crimePREM_TYPE_DESC10', 'sumCrimePREM_TYPE_DESC10', 'crimePREM_TYPE_DESC11', 'sumCrimePREM_TYPE_DESC11', 'crimePREM_TYPE_DESC12', 'sumCrimePREM_TYPE_DESC12', 'crimePREM_TYPE_DESC13', 'sumCrimePREM_TYPE_DESC13', 'crimePREM_TYPE_DESC14', 'sumCrimePREM_TYPE_DESC14', 'crimePREM_TYPE_DESC15', 'sumCrimePREM_TYPE_DESC15', 'crimePREM_TYPE_DESC16', 'sumCrimePREM_TYPE_DESC16', 'crimePREM_TYPE_DESC17', 'sumCrimePREM_TYPE_DESC17', 'crimePREM_TYPE_DESC18', 'sumCrimePREM_TYPE_DESC18', 'crimePREM_TYPE_DESC19', 'sumCrimePREM_TYPE_DESC19', 'crimePREM_TYPE_DESC20', 'sumCrimePREM_TYPE_DESC20', 'crimePREM_TYPE_DESC21', 'sumCrimePREM_TYPE_DESC21', 'crimePREM_TYPE_DESC22', 'sumCrimePREM_TYPE_DESC22', 'crimePREM_TYPE_DESC23', 'sumCrimePREM_TYPE_DESC23', 'crimePREM_TYPE_DESC24', 'sumCrimePREM_TYPE_DESC24', 'crimePREM_TYPE_DESC25', 'sumCrimePREM_TYPE_DESC25', 'crimePREM_TYPE_DESC26', 'sumCrimePREM_TYPE_DESC26', 'crimePREM_TYPE_DESC27', 'sumCrimePREM_TYPE_DESC27', 'crimePREM_TYPE_DESC28', 'sumCrimePREM_TYPE_DESC28', 'crimePREM_TYPE_DESC29', 'sumCrimePREM_TYPE_DESC29', 'crimePREM_TYPE_DESC30', 'sumCrimePREM_TYPE_DESC30', 'crimePREM_TYPE_DESC31', 'sumCrimePREM_TYPE_DESC31', 'crimePREM_TYPE_DESC32', 'sumCrimePREM_TYPE_DESC32', 'crimePREM_TYPE_DESC33', 'sumCrimePREM_TYPE_DESC33', 'crimePREM_TYPE_DESC34', 'sumCrimePREM_TYPE_DESC34', 'crimePREM_TYPE_DESC35', 'sumCrimePREM_TYPE_DESC35', 'crimePREM_TYPE_DESC36', 'sumCrimePREM_TYPE_DESC36', 'crimePREM_TYPE_DESC37', 'sumCrimePREM_TYPE_DESC37', 'crimePREM_TYPE_DESC38', 'sumCrimePREM_TYPE_DESC38', 'crimePREM_TYPE_DESC39', 'sumCrimePREM_TYPE_DESC39', 'crimePREM_TYPE_DESC40', 'sumCrimePREM_TYPE_DESC40', 'crimePREM_TYPE_DESC41', 'sumCrimePREM_TYPE_DESC41', 'crimePREM_TYPE_DESC42', 'sumCrimePREM_TYPE_DESC42', 'crimePREM_TYPE_DESC43', 'sumCrimePREM_TYPE_DESC43', 'crimePREM_TYPE_DESC44', 'sumCrimePREM_TYPE_DESC44', 'crimePREM_TYPE_DESC45', 'sumCrimePREM_TYPE_DESC45', 'crimePREM_TYPE_DESC46', 'sumCrimePREM_TYPE_DESC46', 'crimePREM_TYPE_DESC47', 'sumCrimePREM_TYPE_DESC47', 'crimePREM_TYPE_DESC48', 'sumCrimePREM_TYPE_DESC48', 'crimePREM_TYPE_DESC49', 'sumCrimePREM_TYPE_DESC49', 'crimePREM_TYPE_DESC50', 'sumCrimePREM_TYPE_DESC50', 'crimePREM_TYPE_DESC51', 'sumCrimePREM_TYPE_DESC51', 'crimePREM_TYPE_DESC52', 'sumCrimePREM_TYPE_DESC52', 'crimePREM_TYPE_DESC53', 'sumCrimePREM_TYPE_DESC53', 'crimePREM_TYPE_DESC54', 'sumCrimePREM_TYPE_DESC54', 'crimePREM_TYPE_DESC55', 'sumCrimePREM_TYPE_DESC55', 'crimePREM_TYPE_DESC56', 'sumCrimePREM_TYPE_DESC56', 'crimePREM_TYPE_DESC57', 'sumCrimePREM_TYPE_DESC57', 'crimePREM_TYPE_DESC58', 'sumCrimePREM_TYPE_DESC58', 'crimePREM_TYPE_DESC59', 'sumCrimePREM_TYPE_DESC59', 'crimePREM_TYPE_DESC60', 'sumCrimePREM_TYPE_DESC60', 'crimePREM_TYPE_DESC61', 'sumCrimePREM_TYPE_DESC61', 'crimePREM_TYPE_DESC62', 'sumCrimePREM_TYPE_DESC62', 'crimePREM_TYPE_DESC63', 'sumCrimePREM_TYPE_DESC63', 'crimePREM_TYPE_DESC64', 'sumCrimePREM_TYPE_DESC64', 'crimePREM_TYPE_DESC65', 'sumCrimePREM_TYPE_DESC65', 'crimePREM_TYPE_DESC66', 'sumCrimePREM_TYPE_DESC66', 'crimePREM_TYPE_DESC67', 'sumCrimePREM_TYPE_DESC67', 'crimePREM_TYPE_DESC68', 'sumCrimePREM_TYPE_DESC68', 'crimePREM_TYPE_DESC69', 'sumCrimePREM_TYPE_DESC69', 'crimePREM_TYPE_DESC70', 'sumCrimePREM_TYPE_DESC70', 'crimePREM_TYPE_DESC71', 'sumCrimePREM_TYPE_DESC71', 'crimePREM_TYPE_DESC72', 'sumCrimePREM_TYPE_DESC72', 'crimeLAW_CAT_CD1', 'sumCrimeLAW_CAT_CD1', 'crimeLAW_CAT_CD2', 'sumCrimeLAW_CAT_CD2', 'crimeLAW_CAT_CD3', 'sumCrimeLAW_CAT_CD3' ]
